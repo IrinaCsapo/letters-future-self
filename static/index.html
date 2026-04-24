@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Letters from Your Future Self</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #E2EBF4;
+      --paper:      #FEFCF8;
+      --ink:        #1A1928;
+      --ink-soft:   #6B6880;
+      --accent:     #4361EE;
+      --rule:       #DDD8D0;
+      --shadow:     rgba(26, 25, 40, 0.08);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas background ───────────────────────── */
+    #dot-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Screens ─────────────────────────────────── */
+    .screen {
+      display: none;
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+    .screen.active { display: flex; }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ──────────────────────────────────── */
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    .eyebrow {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.05em;
+      font-weight: 300;
+    }
+
+    /* ── Paper card ──────────────────────────────── */
+    .paper {
+      background: var(--paper);
+      border-radius: 2px;
+      box-shadow:
+        0 2px 4px var(--shadow),
+        0 8px 32px var(--shadow),
+        0 24px 64px rgba(26,25,40,0.05);
+      padding: 2.75rem 2.75rem 2rem;
+      position: relative;
+    }
+
+    .paper::before {
+      content: '';
+      position: absolute;
+      left: 2.4rem;
+      top: 1.5rem;
+      bottom: 1.5rem;
+      width: 1px;
+      background: var(--rule);
+      opacity: 0.5;
+    }
+
+    .prompt-label {
+      display: block;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--ink-soft);
+      margin-bottom: 1.25rem;
+      padding-left: 1.5rem;
+      font-weight: 400;
+    }
+
+    textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      resize: none;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      line-height: 1.85;
+      color: var(--ink);
+      outline: none;
+      font-weight: 400;
+      padding-left: 1.5rem;
+      min-height: 200px;
+    }
+
+    textarea::placeholder {
+      color: var(--rule);
+      font-style: italic;
+    }
+
+    .paper-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    .date-stamp {
+      font-size: 0.68rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    /* ── Buttons ─────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.6rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 0;
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .btn-primary:hover { background: #2D2B45; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid currentColor;
+    }
+    .btn-outline:hover { background: var(--ink); color: var(--paper); }
+
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .hint {
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.68rem;
+      color: var(--ink-soft);
+      opacity: 0.45;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Loading screen ──────────────────────────── */
+    #loading-screen .container {
+      text-align: center;
+      padding: 4rem 0;
+    }
+
+    .loading-eyebrow {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+    }
+
+    .loading-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .dots::after {
+      content: '';
+      animation: dots 2.4s infinite;
+    }
+    @keyframes dots {
+      0%, 15%   { content: ''; }
+      35%       { content: '.'; }
+      60%       { content: '..'; }
+      85%, 100% { content: '...'; }
+    }
+
+    /* ── Letter screen ───────────────────────────── */
+    .letter-paper {
+      background: var(--paper);
+      border-radius: 2px;
+      box-shadow:
+        0 2px 4px var(--shadow),
+        0 8px 32px var(--shadow),
+        0 24px 64px rgba(26,25,40,0.05);
+      padding: 3.5rem 3.25rem;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    .letter-paper.visible { opacity: 1; transform: translateY(0); }
+
+    .botanical {
+      position: absolute;
+      top: 1.75rem;
+      right: 2rem;
+      width: 56px;
+      height: 70px;
+      opacity: 0.1;
+      color: var(--ink);
+    }
+
+    .letter-date {
+      font-size: 0.68rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+      opacity: 0.5;
+    }
+
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      line-height: 1.95;
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    .letter-body p {
+      margin-bottom: 1.6rem;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .letter-body p.revealed { opacity: 1; transform: translateY(0); }
+
+    .letter-body p.quiet-truth {
+      font-style: italic;
+      color: var(--ink-soft);
+      border-top: 1px solid var(--rule);
+      padding-top: 1.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0;
+    }
+
+    .letter-signature {
+      margin-top: 2.5rem;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .letter-signature.revealed { opacity: 1; transform: translateY(0); }
+    .letter-signature p {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--ink-soft);
+      line-height: 1.7;
+    }
+    .letter-signature .sig-name { font-weight: 500; color: var(--ink); }
+
+    /* ── Letter actions ──────────────────────────── */
+    .letter-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .letter-actions.revealed { opacity: 1; }
+
+    /* ── Copy confirmation ───────────────────────── */
+    .copy-confirm {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      margin-top: 0.75rem;
+      height: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .copy-confirm.show { opacity: 1; }
+
+    /* ── Shared letter banner ────────────────────── */
+    .shared-banner {
+      margin-top: 1.5rem;
+      text-align: center;
+      display: none;
+    }
+    .shared-banner.show { display: block; }
+    .shared-banner p {
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+      margin-bottom: 0.75rem;
+      font-style: italic;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+    }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 520px) {
+      h1 { font-size: 2rem; }
+      .paper, .letter-paper { padding: 2rem 1.5rem; }
+      .paper::before { left: 1.25rem; }
+      .prompt-label, textarea { padding-left: 0.75rem; }
+      .letter-actions { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="dot-canvas"></canvas>
+
+  <!-- ── Write screen ────────────────────────────── -->
+  <div id="write-screen" class="screen active">
+    <div class="container">
+      <header>
+        <span class="eyebrow">A letter through time</span>
+        <h1>Letters from<br>Your Future Self</h1>
+        <p class="subtitle">Write honestly. Your future self will write back.</p>
+      </header>
+
+      <div class="paper">
+        <label class="prompt-label">What's been weighing on you lately?</label>
+        <textarea id="user-message" placeholder="Start writing... there's no wrong way to do this." rows="10" autofocus></textarea>
+        <div class="paper-footer">
+          <span class="date-stamp" id="today-date"></span>
+          <button class="btn btn-primary" id="send-btn">Send &rarr;</button>
+        </div>
+      </div>
+
+      <p class="hint">Press ⌘ + Enter to send</p>
+    </div>
+  </div>
+
+  <!-- ── Loading screen ─────────────────────────── -->
+  <div id="loading-screen" class="screen">
+    <div class="container">
+      <span class="loading-eyebrow">From 2036</span>
+      <p class="loading-text">Your future self<br>is writing<span class="dots"></span></p>
+    </div>
+  </div>
+
+  <!-- ── Letter screen ──────────────────────────── -->
+  <div id="letter-screen" class="screen">
+    <div class="container">
+
+      <div class="letter-paper" id="letter-paper">
+        <svg class="botanical" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 80" fill="none" aria-hidden="true">
+          <path d="M30 76 C30 55 29 32 30 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M29.5 54 C22 47 13 42 5 39" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <path d="M30.5 54 C38 47 47 42 55 39" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <path d="M29.5 38 C23 33 16 29 10 26" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <path d="M30.5 38 C37 33 44 29 50 26" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <path d="M29.5 24 C25 20 20 17 16 14" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <path d="M30.5 24 C35 20 40 17 44 14" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <ellipse cx="4" cy="38" rx="4.5" ry="2.5" transform="rotate(-25 4 38)" fill="currentColor" opacity="0.8"/>
+          <ellipse cx="56" cy="38" rx="4.5" ry="2.5" transform="rotate(25 56 38)" fill="currentColor" opacity="0.8"/>
+          <ellipse cx="9" cy="24" rx="4" ry="2.5" transform="rotate(-35 9 24)" fill="currentColor" opacity="0.65"/>
+          <ellipse cx="51" cy="24" rx="4" ry="2.5" transform="rotate(35 51 24)" fill="currentColor" opacity="0.65"/>
+          <ellipse cx="15" cy="13" rx="3.5" ry="2" transform="rotate(-45 15 13)" fill="currentColor" opacity="0.5"/>
+          <ellipse cx="45" cy="13" rx="3.5" ry="2" transform="rotate(45 45 13)" fill="currentColor" opacity="0.5"/>
+          <ellipse cx="30" cy="7" rx="3" ry="4" fill="currentColor" opacity="0.45"/>
+        </svg>
+
+        <div class="letter-date" id="letter-date"></div>
+        <div class="letter-body" id="letter-body"></div>
+        <div class="letter-signature" id="letter-signature">
+          <p>With love,</p>
+          <p class="sig-name" id="sig-name"></p>
+        </div>
+      </div>
+
+      <div class="letter-actions" id="letter-actions">
+        <button class="btn btn-outline" id="save-btn">Save as PDF</button>
+        <button class="btn btn-outline" id="share-btn">Copy link</button>
+        <button class="btn btn-primary" id="again-btn">Write another</button>
+      </div>
+
+      <p class="copy-confirm" id="copy-confirm">Link copied to clipboard</p>
+
+      <div class="shared-banner" id="shared-banner">
+        <p>This letter was written using Letters from Your Future Self.</p>
+        <button class="btn btn-primary" onclick="startFresh()">Write your own letter &rarr;</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

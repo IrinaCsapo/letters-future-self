@@ -5,21 +5,26 @@ const ctx    = canvas.getContext('2d');
 let W = window.innerWidth;
 let H = window.innerHeight;
 
+// ── State ─────────────────────────────────────────────
+let dotMode     = 'idle'; // 'idle' | 'loading' | 'letter'
+let time        = 0;
+let hueShift    = 0;
+let flowers     = [];
+let flowerGrowth = 0;
+let twirls      = [];
+let sunAngle    = 0;
+let sunAlpha    = 0;
+let sunHue      = 0;
+
 function resizeCanvas() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  buildFlowers();
-  buildTwirls();
+  if (flowers.length)  buildFlowers();
+  if (twirls.length)   buildTwirls();
 }
 
 window.addEventListener('resize', () => { resizeCanvas(); initDots(); });
 resizeCanvas();
-
-
-// ── State ─────────────────────────────────────────────
-let dotMode  = 'idle'; // 'idle' | 'loading' | 'letter'
-let time     = 0;
-let hueShift = 0;
 
 
 // ── Stipple dots — palette from reference images ───────
@@ -141,12 +146,7 @@ function drawColorZones() {
 
 // ── Flowers ───────────────────────────────────────────
 
-let flowers = [];
-let flowerGrowth = 0; // 0..1
-
 // ── Twirls ────────────────────────────────────────────
-
-let twirls = [];
 
 function buildTwirls() {
   twirls = [
@@ -323,10 +323,6 @@ function drawFlower(f, growth) {
 
 
 // ── Rotating sun / mandala (loading state) ────────────
-
-let sunAngle = 0;
-let sunAlpha = 0;  // fades in/out
-let sunHue   = 0;
 
 function drawSun() {
   if (sunAlpha <= 0.005) return;

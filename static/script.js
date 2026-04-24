@@ -9,6 +9,7 @@ function resizeCanvas() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
   buildFlowers();
+  buildTwirls();
 }
 
 window.addEventListener('resize', () => { resizeCanvas(); initDots(); });
@@ -16,29 +17,45 @@ resizeCanvas();
 
 
 // ── State ─────────────────────────────────────────────
-let dotMode = 'idle'; // 'idle' | 'loading' | 'letter'
-let time    = 0;
+let dotMode  = 'idle'; // 'idle' | 'loading' | 'letter'
+let time     = 0;
 let hueShift = 0;
 
 
-// ── Holographic dots ──────────────────────────────────
+// ── Stipple dots — palette from reference images ───────
+// Cobalt, electric blue, teal, orange, coral, gold, hot pink, violet
 
-const DOT_COUNT = 200;
+const DOT_COUNT = 280;
 let dots = [];
 
+function dotHue() {
+  const r = Math.random();
+  if (r < 0.28) return 222 + Math.random() * 18;  // cobalt → electric blue
+  if (r < 0.42) return 175 + Math.random() * 18;  // teal / turquoise
+  if (r < 0.56) return 18  + Math.random() * 18;  // warm orange
+  if (r < 0.68) return 4   + Math.random() * 14;  // coral / red-orange
+  if (r < 0.78) return 38  + Math.random() * 14;  // gold / amber
+  if (r < 0.88) return 325 + Math.random() * 25;  // hot pink / rose
+  return               270 + Math.random() * 22;   // violet
+}
+
 function makeDot() {
+  const h = dotHue();
   return {
     x:          Math.random() * W,
     y:          Math.random() * H,
-    baseSize:   Math.random() * 3 + 0.8,
+    baseSize:   Math.random() * 2.4 + 0.5,
     size:       0,
-    hue:        Math.random() * 360,
-    hueSpeed:   (Math.random() - 0.5) * 0.4,
-    alpha:      Math.random() * 0.5 + 0.1,
-    vx:         (Math.random() - 0.5) * 0.22,
-    vy:         (Math.random() - 0.5) * 0.22,
+    hue:        h,
+    baseHue:    h,
+    hueRange:   12,
+    hueDir:     Math.random() > 0.5 ? 1 : -1,
+    hueTick:    0,
+    alpha:      Math.random() * 0.50 + 0.22,
+    vx:         (Math.random() - 0.5) * 0.20,
+    vy:         (Math.random() - 0.5) * 0.20,
     pulse:      Math.random() * Math.PI * 2,
-    pulseSpeed: Math.random() * 0.016 + 0.004,
+    pulseSpeed: Math.random() * 0.014 + 0.004,
   };
 }
 
@@ -51,24 +68,21 @@ function drawDot(d) {
   const r = Math.max(0.3, d.size);
   if (r <= 0) return;
 
-  // Holographic gradient — shimmer across hue spectrum
-  const h1 = (d.hue + hueShift) % 360;
-  const h2 = (h1 + 80) % 360;
-  const h3 = (h1 + 180) % 360;
-
-  const grad = ctx.createRadialGradient(d.x - r * 0.3, d.y - r * 0.3, 0, d.x, d.y, r * 1.6);
-  grad.addColorStop(0,   `hsla(${h1},100%,90%,${d.alpha * 1.4})`);
-  grad.addColorStop(0.4, `hsla(${h2},90%,65%,${d.alpha})`);
-  grad.addColorStop(1,   `hsla(${h3},80%,40%,0)`);
-
+  // Stipple: solid-ish dot with a soft highlight pop
   ctx.beginPath();
-  ctx.arc(d.x, d.y, r * 1.6, 0, Math.PI * 2);
-  ctx.fillStyle = grad;
+  ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+  ctx.fillStyle = `hsla(${d.hue},85%,58%,${d.alpha})`;
+  ctx.fill();
+
+  // Tiny bright centre sparkle
+  ctx.beginPath();
+  ctx.arc(d.x - r * 0.25, d.y - r * 0.25, r * 0.32, 0, Math.PI * 2);
+  ctx.fillStyle = `hsla(${d.hue},60%,90%,${d.alpha * 0.7})`;
   ctx.fill();
 }
 
 function updateDot(d) {
-  const speed = dotMode === 'loading' ? 2.8
+  const speed = dotMode === 'loading' ? 2.6
               : dotMode === 'letter'  ? 0.3
               : 1;
 
@@ -80,33 +94,45 @@ function updateDot(d) {
   if (d.y < -10) d.y = H + 10;
   if (d.y > H + 10) d.y = -10;
 
-  // Collective breathing — spatial wave ripple
+  // Collective breathing wave
   const wave   = Math.sin(time * 0.012 + d.x * 0.006 + d.y * 0.004);
-  const energy = dotMode === 'loading' ? 2.2 : 0.9;
+  const energy = dotMode === 'loading' ? 2.0 : 0.8;
   d.size = Math.max(0.3, d.baseSize + wave * energy);
 
-  d.hue = (d.hue + d.hueSpeed + (dotMode === 'loading' ? 1.2 : 0.3)) % 360;
+  // Gentle hue drift within colour family
+  d.hueTick += 0.12 * d.hueDir * (dotMode === 'loading' ? 3 : 1);
+  if (Math.abs(d.hueTick) > d.hueRange) d.hueDir *= -1;
+  d.hue = d.baseHue + d.hueTick;
 }
 
 
-// ── Color zones (background atmosphere) ───────────────
+// ── Color zones — orange blob + violet blob + pink bloom ──
 
 function drawColorZones() {
-  const alpha = dotMode === 'letter' ? 0.018 : 0.032;
+  // Like the gradient reference images: vivid but on a pale ground
+  const base  = dotMode === 'letter' ? 0.055 : 0.10;
 
   const zones = [
-    { x: W * 0.15, y: H * 0.85, r: W * 0.45, h: 28,  s: 90, l: 60 },  // orange bloom bottom-left
-    { x: W * 0.85, y: H * 0.12, r: W * 0.42, h: 235, s: 85, l: 55 },  // cobalt top-right
-    { x: W * 0.50, y: H * 0.50, r: W * 0.38, h: 268, s: 70, l: 45 },  // violet center
-    { x: W * 0.08, y: H * 0.25, r: W * 0.32, h: 185, s: 75, l: 50 },  // teal top-left
-    { x: W * 0.90, y: H * 0.80, r: W * 0.35, h: 320, s: 80, l: 55 },  // rose bottom-right
+    // Warm orange blob — centre-left (like image 3 left)
+    { x: W * 0.28, y: H * 0.55, r: W * 0.55, h: 22,  s: 95, l: 65, a: base * 1.8 },
+    // Deep purple blob — right (like image 3 right)
+    { x: W * 0.80, y: H * 0.42, r: W * 0.50, h: 268, s: 55, l: 52, a: base * 1.4 },
+    // Hot pink / magenta bloom — upper left (image 4 energy)
+    { x: W * 0.12, y: H * 0.28, r: W * 0.42, h: 335, s: 80, l: 68, a: base * 1.2 },
+    // Coral-red — top right
+    { x: W * 0.85, y: H * 0.15, r: W * 0.38, h: 8,   s: 88, l: 68, a: base },
+    // Soft teal — bottom left
+    { x: W * 0.08, y: H * 0.82, r: W * 0.36, h: 182, s: 60, l: 62, a: base * 0.9 },
+    // Blush peach — bottom right
+    { x: W * 0.90, y: H * 0.88, r: W * 0.34, h: 15,  s: 70, l: 78, a: base * 0.8 },
   ];
 
   zones.forEach(z => {
+    const h = (z.h + hueShift * 0.15) % 360;
     const g = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, z.r);
-    g.addColorStop(0,   `hsla(${(z.h + hueShift * 0.4) % 360},${z.s}%,${z.l}%,${alpha * 2.2})`);
-    g.addColorStop(0.5, `hsla(${(z.h + hueShift * 0.4) % 360},${z.s}%,${z.l}%,${alpha})`);
-    g.addColorStop(1,   `hsla(${(z.h + hueShift * 0.4) % 360},${z.s}%,${z.l}%,0)`);
+    g.addColorStop(0,    `hsla(${h},${z.s}%,${z.l}%,${z.a * 2.0})`);
+    g.addColorStop(0.45, `hsla(${h},${z.s}%,${z.l}%,${z.a})`);
+    g.addColorStop(1,    `hsla(${h},${z.s}%,${z.l}%,0)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   });
@@ -118,22 +144,87 @@ function drawColorZones() {
 let flowers = [];
 let flowerGrowth = 0; // 0..1
 
+// ── Twirls ────────────────────────────────────────────
+
+let twirls = [];
+
+function buildTwirls() {
+  twirls = [
+    { x: W * 0.06, y: H * 0.14, r: 52, hue: 228, speed:  0.0025, phase: 0.0 },
+    { x: W * 0.94, y: H * 0.22, r: 42, hue: 18,  speed: -0.0032, phase: 1.2 },
+    { x: W * 0.04, y: H * 0.72, r: 48, hue: 330, speed:  0.0018, phase: 2.4 },
+    { x: W * 0.96, y: H * 0.75, r: 38, hue: 175, speed: -0.0022, phase: 3.6 },
+    { x: W * 0.50, y: H * 0.04, r: 34, hue: 8,   speed:  0.0038, phase: 4.8 },
+    { x: W * 0.22, y: H * 0.92, r: 30, hue: 268, speed: -0.0028, phase: 0.6 },
+    { x: W * 0.78, y: H * 0.94, r: 36, hue: 350, speed:  0.0021, phase: 1.8 },
+  ];
+}
+buildTwirls();
+
+function drawTwirls(alpha) {
+  if (alpha <= 0) return;
+  twirls.forEach(t => {
+    const hue   = (t.hue + hueShift * 0.12) % 360;
+    const angle = time * t.speed + t.phase;
+    const turns = 4;
+    const pts   = 260;
+
+    ctx.save();
+    ctx.translate(t.x, t.y);
+    ctx.rotate(angle);
+
+    // Outer spiral
+    ctx.beginPath();
+    for (let i = 0; i <= pts; i++) {
+      const θ = (i / pts) * Math.PI * 2 * turns;
+      const r = (i / pts) * t.r;
+      const x = Math.cos(θ) * r;
+      const y = Math.sin(θ) * r;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `hsla(${hue},72%,58%,${alpha * 0.38})`;
+    ctx.lineWidth   = 0.9;
+    ctx.stroke();
+
+    // Inner counter-spiral (thinner, offset hue)
+    ctx.beginPath();
+    for (let i = 0; i <= pts; i++) {
+      const θ = -(i / pts) * Math.PI * 2 * (turns * 0.6);
+      const r = (i / pts) * t.r * 0.55;
+      const x = Math.cos(θ) * r;
+      const y = Math.sin(θ) * r;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `hsla(${(hue + 45) % 360},65%,68%,${alpha * 0.22})`;
+    ctx.lineWidth   = 0.5;
+    ctx.stroke();
+
+    ctx.restore();
+  });
+}
+
+
+// Flower palette — coral, orange, electric blue, teal, pink, rose
+const FLOWER_HUES = [8, 22, 225, 178, 335, 350, 42, 300];
+
 function buildFlowers() {
   flowers = [];
-  const count = Math.max(4, Math.floor(W / 180));
+  const count = Math.max(5, Math.floor(W / 150));
   for (let i = 0; i < count; i++) {
     const t = (i + 0.5) / count;
     flowers.push({
-      x:          W * (t * 0.88 + 0.06),
-      baseY:      H,
-      height:     H * (0.22 + Math.random() * 0.14),
-      lean:       (Math.random() - 0.5) * 0.28,
-      petalHue:   Math.random() * 360,
-      petalCount: 5 + Math.floor(Math.random() * 4),
-      petalSize:  10 + Math.random() * 10,
+      x:          W * (t * 0.90 + 0.05),
+      baseY:      H + 2,
+      height:     H * (0.20 + Math.random() * 0.16),
+      lean:       (Math.random() - 0.5) * 0.22,
+      petalHue:   FLOWER_HUES[i % FLOWER_HUES.length],
+      petalCount: 7 + Math.floor(Math.random() * 4),   // 7–10 petals
+      petalSize:  9 + Math.random() * 9,
+      petalLayers: Math.random() > 0.5 ? 2 : 1,        // some flowers have inner layer
       leafSide:   Math.random() > 0.5 ? 1 : -1,
       phase:      Math.random() * Math.PI * 2,
-      speed:      0.008 + Math.random() * 0.004,
+      speed:      0.006 + Math.random() * 0.003,
+      isBud:      Math.random() > 0.7,                  // some stay as buds
     });
   }
 }
@@ -142,72 +233,89 @@ buildFlowers();
 function drawFlower(f, growth) {
   if (growth <= 0) return;
 
-  const stemH = f.height * Math.min(growth * 1.4, 1);
+  const stemH = f.height * Math.min(growth * 1.35, 1);
   const tipX  = f.x + Math.sin(f.lean) * stemH;
   const tipY  = f.baseY - stemH;
 
-  // Subtle sway
-  const sway = Math.sin(time * f.speed + f.phase) * 5 * growth;
-  const cpX  = f.x + f.lean * stemH * 0.5 + sway;
-  const cpY  = f.baseY - stemH * 0.55;
+  // Gentle sway
+  const sway = Math.sin(time * f.speed + f.phase) * 4 * growth;
+  const cpX  = f.x + f.lean * stemH * 0.45 + sway * 0.5;
+  const cpY  = f.baseY - stemH * 0.58;
 
-  // Stem
+  // Slender stem
   ctx.beginPath();
   ctx.moveTo(f.x, f.baseY);
-  ctx.quadraticCurveTo(cpX, cpY, tipX + sway * 0.6, tipY);
-  ctx.strokeStyle = `rgba(120,200,140,${0.45 * growth})`;
-  ctx.lineWidth   = 1.8;
+  ctx.quadraticCurveTo(cpX, cpY, tipX + sway * 0.5, tipY);
+  ctx.strokeStyle = `rgba(140,210,160,${0.38 * growth})`;
+  ctx.lineWidth   = 1.1;
   ctx.stroke();
 
-  // Leaf — appears at 40% growth
-  if (growth > 0.4) {
-    const leafAlpha = Math.min((growth - 0.4) / 0.3, 1);
-    const leafT = 0.52;
-    const lx = f.x + (cpX - f.x) * leafT;
-    const ly = f.baseY + (cpY - f.baseY) * leafT;
-    const ld = f.leafSide * 22 * leafAlpha;
+  // Delicate leaf — at 38% growth
+  if (growth > 0.38) {
+    const la = Math.min((growth - 0.38) / 0.28, 1);
+    const lt = 0.5;
+    const lx = f.x + (cpX - f.x) * lt;
+    const ly = f.baseY + (cpY - f.baseY) * lt;
+    const ld = f.leafSide * 18 * la;
+    const ph = (f.petalHue + 120) % 360; // green-adjacent tint
 
     ctx.beginPath();
     ctx.moveTo(lx, ly);
-    ctx.quadraticCurveTo(lx + ld, ly - 14 * leafAlpha, lx + ld * 1.8, ly + 2 * leafAlpha);
-    ctx.quadraticCurveTo(lx + ld, ly + 8 * leafAlpha, lx, ly);
-    ctx.fillStyle = `rgba(100,185,120,${0.5 * leafAlpha * growth})`;
+    ctx.quadraticCurveTo(lx + ld, ly - 11 * la, lx + ld * 1.7, ly + 1 * la);
+    ctx.quadraticCurveTo(lx + ld * 0.5, ly + 7 * la, lx, ly);
+    ctx.fillStyle = `rgba(110,190,130,${0.42 * la * growth})`;
     ctx.fill();
   }
 
-  // Petals — bloom above 85%
-  if (growth > 0.85) {
-    const bloom = Math.min((growth - 0.85) / 0.15, 1);
-    const px = tipX + sway * 0.6;
+  // Bloom — above 80%
+  if (growth > 0.80) {
+    const bloom = Math.min((growth - 0.80) / 0.20, 1);
+    const px = tipX + sway * 0.5;
     const py = tipY;
     const ps = f.petalSize * bloom;
-    const ph = (f.petalHue + hueShift * 0.6) % 360;
+    const ph = (f.petalHue + hueShift * 0.25) % 360;   // drift slowly with hue
 
+    // Outer petal layer
     for (let p = 0; p < f.petalCount; p++) {
-      const angle = (p / f.petalCount) * Math.PI * 2 + time * 0.004;
-      const ex = px + Math.cos(angle) * ps;
-      const ey = py + Math.sin(angle) * ps * 0.75;
+      const angle  = (p / f.petalCount) * Math.PI * 2 + time * 0.003;
+      const cx2    = px + Math.cos(angle) * ps * 0.52;
+      const cy2    = py + Math.sin(angle) * ps * 0.42;
+      const tipPx  = px + Math.cos(angle) * ps;
+      const tipPy  = py + Math.sin(angle) * ps * 0.82;
 
       ctx.beginPath();
-      ctx.ellipse(
-        px + Math.cos(angle) * ps * 0.5,
-        py + Math.sin(angle) * ps * 0.38,
-        ps * 0.55, ps * 0.3,
-        angle, 0, Math.PI * 2
-      );
-      const pg = ctx.createRadialGradient(px, py, 0, ex, ey, ps * 0.7);
-      pg.addColorStop(0, `hsla(${ph},90%,85%,${0.7 * bloom})`);
-      pg.addColorStop(1, `hsla(${(ph + 40) % 360},80%,55%,${0.2 * bloom})`);
+      ctx.ellipse(cx2, cy2, ps * 0.42, ps * 0.22, angle, 0, Math.PI * 2);
+
+      const pg = ctx.createRadialGradient(px, py, 0, tipPx, tipPy, ps * 0.9);
+      pg.addColorStop(0,   `hsla(${ph},80%,92%,${0.78 * bloom})`);
+      pg.addColorStop(0.5, `hsla(${ph},75%,80%,${0.55 * bloom})`);
+      pg.addColorStop(1,   `hsla(${(ph + 20) % 360},65%,62%,${0.18 * bloom})`);
       ctx.fillStyle = pg;
       ctx.fill();
     }
 
-    // Flower centre
-    const cg = ctx.createRadialGradient(px, py, 0, px, py, ps * 0.28);
-    cg.addColorStop(0, `hsla(${(ph + 55) % 360},100%,95%,${0.9 * bloom})`);
-    cg.addColorStop(1, `hsla(${(ph + 30) % 360},80%,60%,${0.4 * bloom})`);
+    // Inner petal layer (for fuller flowers)
+    if (f.petalLayers === 2) {
+      const innerCount = Math.floor(f.petalCount * 0.7);
+      for (let p = 0; p < innerCount; p++) {
+        const angle = (p / innerCount) * Math.PI * 2 + time * 0.003 + Math.PI / innerCount;
+        const cx2   = px + Math.cos(angle) * ps * 0.28;
+        const cy2   = py + Math.sin(angle) * ps * 0.22;
+
+        ctx.beginPath();
+        ctx.ellipse(cx2, cy2, ps * 0.26, ps * 0.14, angle, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${(ph + 15) % 360},85%,88%,${0.6 * bloom})`;
+        ctx.fill();
+      }
+    }
+
+    // Soft glowing centre
+    const cg = ctx.createRadialGradient(px, py, 0, px, py, ps * 0.22);
+    cg.addColorStop(0,   `hsla(${(ph + 40) % 360},100%,97%,${0.95 * bloom})`);
+    cg.addColorStop(0.5, `hsla(${(ph + 25) % 360},90%,82%,${0.6 * bloom})`);
+    cg.addColorStop(1,   `hsla(${ph},70%,65%,0)`);
     ctx.beginPath();
-    ctx.arc(px, py, ps * 0.28, 0, Math.PI * 2);
+    ctx.arc(px, py, ps * 0.22, 0, Math.PI * 2);
     ctx.fillStyle = cg;
     ctx.fill();
   }
@@ -308,6 +416,10 @@ function animate() {
     flowerGrowth = Math.min(1, flowerGrowth + 0.004);
     sunAlpha     = Math.max(0, sunAlpha - 0.04);
   }
+
+  // Twirls fade out during loading, always visible otherwise
+  const twirlAlpha = dotMode === 'loading' ? Math.max(0, 1 - sunAlpha * 2) : flowerGrowth;
+  drawTwirls(twirlAlpha);
 
   flowers.forEach(f => drawFlower(f, flowerGrowth));
   drawSun();

@@ -585,80 +585,118 @@ function extractQuotes(paragraphs) {
   return picks;
 }
 
-function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
+// ── PDF quote-page helpers ────────────────────────────
 
-function drawQuoteGradient(doc) {
-  const pw = doc.internal.pageSize.getWidth();
-  const ph = doc.internal.pageSize.getHeight();
-  const strips = 120;
-
-  for (let i = 0; i < strips; i++) {
-    const t = i / (strips - 1);
-    let r, g, b;
-
-    if (t < 0.22) {
-      // Top: deep navy
-      r = Math.round(lerp(12, 28, t / 0.22));
-      g = Math.round(lerp(8,  14, t / 0.22));
-      b = Math.round(lerp(38, 55, t / 0.22));
-    } else if (t < 0.55) {
-      // Orange / coral bloom
-      const u = (t - 0.22) / 0.33;
-      r = Math.round(lerp(28,  220, u));
-      g = Math.round(lerp(14,   68, u));
-      b = Math.round(lerp(55,   18, u));
-    } else if (t < 0.78) {
-      // Coral → hot pink
-      const u = (t - 0.55) / 0.23;
-      r = Math.round(lerp(220, 175, u));
-      g = Math.round(lerp(68,   22, u));
-      b = Math.round(lerp(18,   90, u));
-    } else {
-      // Deep violet / indigo bottom
-      const u = (t - 0.78) / 0.22;
-      r = Math.round(lerp(175,  35, u));
-      g = Math.round(lerp(22,   10, u));
-      b = Math.round(lerp(90,   80, u));
-    }
-
+// Soft colour blob: concentric filled circles with opacity falloff
+function drawPDFBlob(doc, cx, cy, maxR, r, g, b) {
+  const steps = 20;
+  for (let i = steps; i >= 1; i--) {
+    const t      = i / steps;
+    const radius = maxR * t;
+    const alpha  = 0.11 * (1 - t * 0.55);
+    doc.setGState(doc.GState({ opacity: alpha }));
     doc.setFillColor(r, g, b);
-    doc.rect(0, i * (ph / strips) - 0.5, pw, (ph / strips) + 1, 'F');
+    doc.circle(cx, cy, radius, 'F');
   }
+  doc.setGState(doc.GState({ opacity: 1 }));
+}
+
+// Flower: ring of petal circles around a centre
+function drawPDFFlower(doc, cx, cy, petalCount, petalR, dist, r, g, b) {
+  doc.setFillColor(r, g, b);
+  for (let i = 0; i < petalCount; i++) {
+    const angle = (i / petalCount) * Math.PI * 2;
+    const px    = cx + Math.cos(angle) * dist;
+    const py    = cy + Math.sin(angle) * dist;
+    doc.setGState(doc.GState({ opacity: 0.52 }));
+    doc.circle(px, py, petalR, 'F');
+  }
+  // centre dot
+  doc.setGState(doc.GState({ opacity: 0.72 }));
+  doc.circle(cx, cy, petalR * 0.62, 'F');
+  doc.setGState(doc.GState({ opacity: 1 }));
+}
+
+// Archimedean spiral drawn as connected line segments
+function drawPDFSpiral(doc, cx, cy, maxR, turns, r, g, b) {
+  const steps = Math.round(turns * 52);
+  doc.setDrawColor(r, g, b);
+  doc.setLineWidth(0.32);
+  doc.setGState(doc.GState({ opacity: 0.38 }));
+  for (let i = 1; i < steps; i++) {
+    const t0 = (i - 1) / steps;
+    const t1 = i       / steps;
+    const a0 = t0 * turns * Math.PI * 2;
+    const a1 = t1 * turns * Math.PI * 2;
+    doc.line(
+      cx + Math.cos(a0) * maxR * t0,  cy + Math.sin(a0) * maxR * t0,
+      cx + Math.cos(a1) * maxR * t1,  cy + Math.sin(a1) * maxR * t1
+    );
+  }
+  doc.setGState(doc.GState({ opacity: 1 }));
+  doc.setLineWidth(0.2);
 }
 
 function addQuotePage(doc, quote) {
   doc.addPage();
-  drawQuoteGradient(doc);
+  const pw = doc.internal.pageSize.getWidth();   // 210 mm
+  const ph = doc.internal.pageSize.getHeight();  // 297 mm
 
-  const pw = doc.internal.pageSize.getWidth();
-  const ph = doc.internal.pageSize.getHeight();
-  const margin = 24;
+  // ── Background: pale lavender (matches --bg on the site) ──
+  doc.setFillColor(245, 241, 250);
+  doc.rect(0, 0, pw, ph, 'F');
 
-  // Quote text
+  // ── Corner colour blobs ────────────────────────────────
+  drawPDFBlob(doc,   0,   0,  82, 220, 160, 210);  // top-left:     soft rose/pink
+  drawPDFBlob(doc,  pw,   0,  74, 255, 190, 155);  // top-right:    peach / coral
+  drawPDFBlob(doc,   0,  ph,  88, 160, 120, 220);  // bottom-left:  lavender / purple
+  drawPDFBlob(doc,  pw,  ph,  78, 230, 170, 230);  // bottom-right: pink-violet
+
+  // ── Flowers ────────────────────────────────────────────
+  // bottom-left cluster
+  drawPDFFlower(doc,  20,  ph - 24,  8,  6,   10,  175, 115, 215);
+  drawPDFFlower(doc,   7,  ph - 44,  6,  4.2,  7,  235, 145, 190);
+  drawPDFFlower(doc,  34,  ph - 10,  5,  3.4,  6,  215, 168, 232);
+
+  // top-right cluster
+  drawPDFFlower(doc, pw - 20,  24,   8,  6,   10,  255, 165, 145);
+  drawPDFFlower(doc, pw -  7,  44,   6,  4.2,  7,  240, 155, 205);
+  drawPDFFlower(doc, pw - 34,  10,   5,  3.4,  6,  195, 148, 228);
+
+  // ── Spirals / twirls ──────────────────────────────────
+  drawPDFSpiral(doc,  40, ph - 44,  24, 2.5,  185, 135, 218);
+  drawPDFSpiral(doc, pw - 40, 44,   20, 2.2,  240, 155, 178);
+
+  // ── Quote text ─────────────────────────────────────────
+  const margin = 22;
   doc.setFont('times', 'italic');
-  doc.setFontSize(20);
-  doc.setTextColor(255, 255, 255);
-  const lines = doc.splitTextToSize(`\u201C${quote}\u201D`, pw - margin * 2);
-  const blockH = lines.length * 9.5;
-  let y = (ph - blockH) / 2 - 8;
+  doc.setFontSize(29);
+  doc.setTextColor(40, 34, 65);
+
+  const lines  = doc.splitTextToSize(`\u201C${quote}\u201D`, pw - margin * 2);
+  const lineH  = 13;
+  const blockH = lines.length * lineH;
+  let y = (ph - blockH) / 2 + 4;
+
   lines.forEach(line => {
     doc.text(line, pw / 2, y, { align: 'center' });
-    y += 9.5;
+    y += lineH;
   });
 
-  // Thin rule
-  y += 10;
-  doc.setDrawColor(255, 255, 255);
-  doc.setGState(doc.GState({ opacity: 0.3 }));
-  doc.line(margin + 20, y, pw - margin - 20, y);
+  // Thin decorative rule below quote
+  y += 9;
+  doc.setDrawColor(175, 148, 215);
+  doc.setLineWidth(0.28);
+  doc.setGState(doc.GState({ opacity: 0.45 }));
+  doc.line(margin + 28, y, pw - margin - 28, y);
   doc.setGState(doc.GState({ opacity: 1 }));
 
-  // Branding at bottom
+  // ── Branding footer ────────────────────────────────────
   doc.setFont('times', 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text(formatDate(today), pw / 2, ph - 20, { align: 'center' });
-  doc.text('Letters from Your Future Self', pw / 2, ph - 13, { align: 'center' });
+  doc.setTextColor(145, 132, 170);
+  doc.text('Letters from Your Future Self', pw / 2, ph - 16, { align: 'center' });
+  doc.text(formatDate(today), pw / 2, ph - 10, { align: 'center' });
 }
 
 function saveAsPDF() {

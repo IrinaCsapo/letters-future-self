@@ -112,31 +112,33 @@ function updateDot(d) {
 
 
 // ── Color zones — orange blob + violet blob + pink bloom ──
+// Base positions; each orbits slowly for a living, circulating feel
+
+const ZONE_DEFS = [
+  { bx: 0.28, by: 0.55, r: 0.55, h: 22,  s: 95, l: 65, a: 1.8, spd: 0.00055, phase: 0.0 },
+  { bx: 0.80, by: 0.42, r: 0.50, h: 268, s: 55, l: 52, a: 1.4, spd: 0.00042, phase: 1.1 },
+  { bx: 0.12, by: 0.28, r: 0.42, h: 335, s: 80, l: 68, a: 1.2, spd: 0.00068, phase: 2.2 },
+  { bx: 0.85, by: 0.15, r: 0.38, h: 8,   s: 88, l: 68, a: 1.0, spd: 0.00038, phase: 3.3 },
+  { bx: 0.08, by: 0.82, r: 0.36, h: 182, s: 60, l: 62, a: 0.9, spd: 0.00058, phase: 4.4 },
+  { bx: 0.90, by: 0.88, r: 0.34, h: 15,  s: 70, l: 78, a: 0.8, spd: 0.00048, phase: 5.5 },
+];
 
 function drawColorZones() {
-  // Like the gradient reference images: vivid but on a pale ground
-  const base  = dotMode === 'letter' ? 0.055 : 0.10;
+  const base = dotMode === 'letter' ? 0.062 : 0.115;
 
-  const zones = [
-    // Warm orange blob — centre-left (like image 3 left)
-    { x: W * 0.28, y: H * 0.55, r: W * 0.55, h: 22,  s: 95, l: 65, a: base * 1.8 },
-    // Deep purple blob — right (like image 3 right)
-    { x: W * 0.80, y: H * 0.42, r: W * 0.50, h: 268, s: 55, l: 52, a: base * 1.4 },
-    // Hot pink / magenta bloom — upper left (image 4 energy)
-    { x: W * 0.12, y: H * 0.28, r: W * 0.42, h: 335, s: 80, l: 68, a: base * 1.2 },
-    // Coral-red — top right
-    { x: W * 0.85, y: H * 0.15, r: W * 0.38, h: 8,   s: 88, l: 68, a: base },
-    // Soft teal — bottom left
-    { x: W * 0.08, y: H * 0.82, r: W * 0.36, h: 182, s: 60, l: 62, a: base * 0.9 },
-    // Blush peach — bottom right
-    { x: W * 0.90, y: H * 0.88, r: W * 0.34, h: 15,  s: 70, l: 78, a: base * 0.8 },
-  ];
+  ZONE_DEFS.forEach(z => {
+    // Orbital drift — each zone moves in a gentle ellipse
+    const orbit = time * z.spd + z.phase;
+    const ox = Math.cos(orbit)        * W * 0.10;
+    const oy = Math.sin(orbit * 0.75) * H * 0.08;
+    const zx = W * z.bx + ox;
+    const zy = H * z.by + oy;
+    const zr = W * z.r;
 
-  zones.forEach(z => {
-    const h = (z.h + hueShift * 0.15) % 360;
-    const g = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, z.r);
-    g.addColorStop(0,    `hsla(${h},${z.s}%,${z.l}%,${z.a * 2.0})`);
-    g.addColorStop(0.45, `hsla(${h},${z.s}%,${z.l}%,${z.a})`);
+    const h = (z.h + hueShift * 0.45) % 360;
+    const g = ctx.createRadialGradient(zx, zy, 0, zx, zy, zr);
+    g.addColorStop(0,    `hsla(${h},${z.s}%,${z.l}%,${base * z.a * 2.2})`);
+    g.addColorStop(0.42, `hsla(${h},${z.s}%,${z.l}%,${base * z.a})`);
     g.addColorStop(1,    `hsla(${h},${z.s}%,${z.l}%,0)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
@@ -398,7 +400,7 @@ function drawSun() {
 
 function animate() {
   time++;
-  hueShift = (hueShift + 0.18) % 360;
+  hueShift = (hueShift + 0.38) % 360;
 
   ctx.clearRect(0, 0, W, H);
 
@@ -554,6 +556,111 @@ function renderLetter(paragraphs, isShared) {
 
 // ── PDF generation ────────────────────────────────────
 
+function extractQuotes(paragraphs) {
+  // Collect all sentences, prefer ones that read as standalone truths
+  const sentences = [];
+  paragraphs.forEach(p => {
+    const parts = p.match(/[^.!?]+[.!?]+/g) || [p];
+    parts.forEach(s => sentences.push(s.trim()));
+  });
+
+  // Score: prefer 50–180 chars, penalise sentences starting with "I " or "You "
+  const scored = sentences
+    .filter(s => s.length >= 45)
+    .map(s => {
+      let score = Math.min(s.length, 160);
+      if (/^(I |You )/i.test(s)) score -= 25;
+      if (/\b(always|never|every|still|already|somehow|quietly|slowly)\b/i.test(s)) score += 20;
+      return { s, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  // Return top 2 unique quotes, capped at 170 chars each
+  const picks = [];
+  for (const { s } of scored) {
+    const capped = s.length > 170 ? s.slice(0, 167) + '…' : s;
+    if (!picks.includes(capped)) picks.push(capped);
+    if (picks.length === 2) break;
+  }
+  return picks;
+}
+
+function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
+
+function drawQuoteGradient(doc) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const strips = 120;
+
+  for (let i = 0; i < strips; i++) {
+    const t = i / (strips - 1);
+    let r, g, b;
+
+    if (t < 0.22) {
+      // Top: deep navy
+      r = Math.round(lerp(12, 28, t / 0.22));
+      g = Math.round(lerp(8,  14, t / 0.22));
+      b = Math.round(lerp(38, 55, t / 0.22));
+    } else if (t < 0.55) {
+      // Orange / coral bloom
+      const u = (t - 0.22) / 0.33;
+      r = Math.round(lerp(28,  220, u));
+      g = Math.round(lerp(14,   68, u));
+      b = Math.round(lerp(55,   18, u));
+    } else if (t < 0.78) {
+      // Coral → hot pink
+      const u = (t - 0.55) / 0.23;
+      r = Math.round(lerp(220, 175, u));
+      g = Math.round(lerp(68,   22, u));
+      b = Math.round(lerp(18,   90, u));
+    } else {
+      // Deep violet / indigo bottom
+      const u = (t - 0.78) / 0.22;
+      r = Math.round(lerp(175,  35, u));
+      g = Math.round(lerp(22,   10, u));
+      b = Math.round(lerp(90,   80, u));
+    }
+
+    doc.setFillColor(r, g, b);
+    doc.rect(0, i * (ph / strips) - 0.5, pw, (ph / strips) + 1, 'F');
+  }
+}
+
+function addQuotePage(doc, quote) {
+  doc.addPage();
+  drawQuoteGradient(doc);
+
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const margin = 24;
+
+  // Quote text
+  doc.setFont('times', 'italic');
+  doc.setFontSize(20);
+  doc.setTextColor(255, 255, 255);
+  const lines = doc.splitTextToSize(`\u201C${quote}\u201D`, pw - margin * 2);
+  const blockH = lines.length * 9.5;
+  let y = (ph - blockH) / 2 - 8;
+  lines.forEach(line => {
+    doc.text(line, pw / 2, y, { align: 'center' });
+    y += 9.5;
+  });
+
+  // Thin rule
+  y += 10;
+  doc.setDrawColor(255, 255, 255);
+  doc.setGState(doc.GState({ opacity: 0.3 }));
+  doc.line(margin + 20, y, pw - margin - 20, y);
+  doc.setGState(doc.GState({ opacity: 1 }));
+
+  // Branding at bottom
+  doc.setFont('times', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text(formatDate(today), pw / 2, ph - 20, { align: 'center' });
+  doc.text('Letters from Your Future Self', pw / 2, ph - 13, { align: 'center' });
+}
+
 function saveAsPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -622,6 +729,10 @@ function saveAsPDF() {
   doc.setTextColor(30, 28, 45);
   doc.text(`You, from ${futureDate.getFullYear()}`, margin, y + 8);
 
+  // ── Quote pages ─────────────────────────────────────
+  const quotes = extractQuotes(currentParagraphs);
+  quotes.forEach(q => addQuotePage(doc, q));
+
   doc.save(`letter-from-future-self-${today.toISOString().split('T')[0]}.pdf`);
 }
 
@@ -684,6 +795,16 @@ againBtn.addEventListener('click', reset);
 userMessage.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generateLetter();
 });
+
+
+// ── Writing prompts toggle ────────────────────────────
+
+function togglePrompts() {
+  const body  = document.getElementById('prompts-body');
+  const arrow = document.getElementById('prompts-arrow');
+  const open  = body.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+}
 
 
 // ── Init ──────────────────────────────────────────────

@@ -91,19 +91,100 @@
     }
 
     .subtitle {
-      font-size: 0.8rem;
-      color: var(--soft);
-      letter-spacing: 0.08em;
+      font-size: 0.92rem;
+      color: rgba(22,18,52,0.62);
+      letter-spacing: 0.05em;
       font-weight: 300;
+      line-height: 1.7;
     }
 
     .privacy {
-      font-size: 0.62rem;
-      color: var(--soft);
-      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+      color: rgba(22,18,52,0.45);
+      letter-spacing: 0.05em;
       font-weight: 300;
-      margin-top: 1rem;
-      opacity: 0.6;
+      margin-top: 0.9rem;
+    }
+
+    /* ── Writing prompts ─────────────────────────── */
+    .prompts-section {
+      margin-top: 1.75rem;
+      text-align: center;
+    }
+
+    .prompts-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-style: italic;
+      color: rgba(22,18,52,0.58);
+      letter-spacing: 0.02em;
+      padding: 0.4rem 0.75rem;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .prompts-toggle:hover { color: rgba(22,18,52,0.85); }
+
+    .prompts-arrow { font-style: normal; font-size: 0.8rem; transition: transform 0.3s ease; display: inline-block; }
+    .prompts-arrow.open { transform: rotate(180deg); }
+
+    .prompts-body {
+      display: none;
+      margin-top: 1.25rem;
+      background: rgba(255,255,255,0.52);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 1px;
+      padding: 1.75rem 2rem 1.5rem;
+      text-align: left;
+      box-shadow: 0 2px 20px rgba(180,130,210,0.08);
+    }
+    .prompts-body.open { display: block; }
+
+    .prompts-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 0.3rem;
+    }
+
+    .prompts-sub {
+      font-size: 0.7rem;
+      color: rgba(22,18,52,0.45);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .prompts-list {
+      list-style: none;
+    }
+    .prompts-list li {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      color: rgba(22,18,52,0.78);
+      line-height: 1.5;
+      padding: 0.3rem 0;
+      display: flex;
+      gap: 0.65rem;
+      align-items: baseline;
+    }
+    .prompts-list li span.emoji { font-style: normal; flex-shrink: 0; }
+
+    /* ── Grain overlay ───────────────────────────── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.038;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
     }
 
     /* ── Paper card ──────────────────────────────── */
@@ -373,6 +454,7 @@
 <body>
 
   <canvas id="dot-canvas"></canvas>
+  <div class="grain"></div>
 
   <!-- ── Write screen ────────────────────────────── -->
   <div id="write-screen" class="screen active">
@@ -395,6 +477,27 @@
       </div>
 
       <p class="hint">Press ⌘ + Enter to send</p>
+
+      <div class="prompts-section">
+        <button class="prompts-toggle" onclick="togglePrompts()">
+          Don't know what to write about? <span class="prompts-arrow" id="prompts-arrow">↓</span>
+        </button>
+        <div class="prompts-body" id="prompts-body">
+          <p class="prompts-heading">Write about yourself</p>
+          <p class="prompts-sub">You could write about…</p>
+          <ul class="prompts-list">
+            <li><span class="emoji">🌿</span> your hopes and dreams for the years ahead</li>
+            <li><span class="emoji">💭</span> something that's been on your mind lately</li>
+            <li><span class="emoji">🙏</span> who or what you're grateful for right now</li>
+            <li><span class="emoji">💪</span> something difficult you've been through</li>
+            <li><span class="emoji">🌱</span> something you've recently learned about yourself</li>
+            <li><span class="emoji">✨</span> a recent moment of pride or quiet joy</li>
+            <li><span class="emoji">💔</span> something that's been weighing heavy on your heart</li>
+            <li><span class="emoji">🔮</span> a worry you hope won't matter in ten years</li>
+          </ul>
+        </div>
+      </div>
+
     </div>
   </div>
 

@@ -400,7 +400,7 @@ function drawSun() {
 
 function animate() {
   time++;
-  hueShift = (hueShift + 0.38) % 360;
+  hueShift = (hueShift + 0.38) % 36000; // wrap at integer multiple of 360 → seamless
 
   ctx.clearRect(0, 0, W, H);
 
@@ -737,13 +737,19 @@ function saveAsPDF() {
 }
 
 
-// ── Share link ────────────────────────────────────────
+// ── Share link — short server-side ID ────────────────
 
-function copyShareLink() {
+async function copyShareLink() {
   try {
-    const encoded = btoa(encodeURIComponent(JSON.stringify(currentParagraphs)));
-    const url     = `${window.location.origin}/#${encoded}`;
+    const res  = await fetch('/save', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ paragraphs: currentParagraphs }),
+    });
+    const data = await res.json();
+    if (!data.id) throw new Error('No ID returned');
 
+    const url = `${window.location.origin}/?l=${data.id}`;
     navigator.clipboard.writeText(url).then(() => {
       copyConfirm.classList.add('show');
       setTimeout(() => copyConfirm.classList.remove('show'), 2500);
@@ -754,21 +760,36 @@ function copyShareLink() {
 }
 
 
-// ── Load shared letter from URL hash ──────────────────
+// ── Load shared letter (short ID or legacy hash) ──────
 
-function loadFromHash() {
+async function loadFromShared() {
+  // New format: ?l=<id>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('l');
+  if (id) {
+    try {
+      const res = await fetch(`/letter/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.paragraphs) && data.paragraphs.length > 0) {
+          currentParagraphs = data.paragraphs;
+          renderLetter(data.paragraphs, true);
+          return;
+        }
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  // Legacy format: #<base64>
   const hash = window.location.hash.slice(1);
   if (!hash) return;
-
   try {
     const paragraphs = JSON.parse(decodeURIComponent(atob(hash)));
     if (Array.isArray(paragraphs) && paragraphs.length > 0) {
       currentParagraphs = paragraphs;
       renderLetter(paragraphs, true);
     }
-  } catch (e) {
-    // Invalid hash — show normal page
-  }
+  } catch (e) { /* invalid — show normal page */ }
 }
 
 
@@ -809,4 +830,4 @@ function togglePrompts() {
 
 // ── Init ──────────────────────────────────────────────
 
-loadFromHash();
+loadFromShared();

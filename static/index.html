@@ -238,6 +238,16 @@
 
     textarea::placeholder { color: var(--rule); font-style: italic; }
 
+    .card-note {
+      font-size: 0.68rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.03em;
+      line-height: 1.65;
+      padding-left: 1.5rem;
+      margin-top: 0.75rem;
+      opacity: 0.55;
+    }
+
     .paper-footer {
       display: flex;
       align-items: center;
@@ -463,13 +473,12 @@
         <span class="eyebrow">A letter through time</span>
         <h1>Letters from<br><em>Your Future Self</em></h1>
         <p class="subtitle">Write honestly. Your future self will write back.</p>
-        <p class="subtitle" style="margin-top:0.5rem;">Write in any language — your future self will reply in kind.</p>
-        <p class="privacy">Your letters are private. We never store your words.</p>
       </header>
 
       <div class="paper">
         <label class="prompt-label">What's been weighing on you lately?</label>
         <textarea id="user-message" placeholder="Start writing... there's no wrong way to do this." rows="10" autofocus></textarea>
+        <p class="card-note">Write in any language — your future self will reply in kind.<br>Your letters are private. We never store or read your words.</p>
         <div class="paper-footer">
           <span class="date-stamp" id="today-date"></span>
           <button class="btn btn-primary" id="send-btn">Send &rarr;</button>

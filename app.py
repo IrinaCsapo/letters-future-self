@@ -3,10 +3,14 @@ from dotenv import load_dotenv
 load_dotenv()
 import anthropic
 import os
+import secrets
 
 app = Flask(__name__, static_folder='static')
 
 client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+
+# In-memory letter store for short share links (resets on redeploy)
+letters_store = {}
 
 SYSTEM_PROMPT = """You are writing a letter from someone's future self, 10 years from now. You are warm, grounded, and wise. Not because life became perfect, but because you lived through what they are describing and came out the other side with more understanding and less fear.
 
@@ -57,6 +61,25 @@ def generate_letter():
     except Exception as e:
         print(f"Error generating letter: {e}")
         return jsonify({'error': 'Something went wrong. Please try again.'}), 500
+
+
+@app.route('/save', methods=['POST'])
+def save_letter():
+    data = request.get_json()
+    paragraphs = data.get('paragraphs', [])
+    if not paragraphs:
+        return jsonify({'error': 'No content'}), 400
+    letter_id = secrets.token_urlsafe(6)   # e.g. "aB3xYz"
+    letters_store[letter_id] = paragraphs
+    return jsonify({'id': letter_id})
+
+
+@app.route('/letter/<letter_id>', methods=['GET'])
+def get_letter(letter_id):
+    paragraphs = letters_store.get(letter_id)
+    if not paragraphs:
+        return jsonify({'error': 'Letter not found or expired'}), 404
+    return jsonify({'paragraphs': paragraphs})
 
 
 if __name__ == '__main__':

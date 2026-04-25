@@ -187,6 +187,36 @@
       background-size: 256px 256px;
     }
 
+    /* ── Language selector ───────────────────────── */
+    .lang-select {
+      position: fixed;
+      top: 1.2rem;
+      right: 1.5rem;
+      z-index: 10;
+      background: rgba(254,252,248,0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(26,25,40,0.18);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: var(--ink-soft);
+      padding: 0.35rem 1.5rem 0.35rem 0.65rem;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+      transition: border-color 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%237A7490'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 6px;
+      border-radius: 0;
+    }
+    .lang-select:hover { border-color: rgba(26,25,40,0.4); color: var(--ink); }
+    .lang-select:focus { border-color: var(--accent); outline: none; }
+
     /* ── Paper card ──────────────────────────────── */
     .paper {
       background: var(--paper);
@@ -458,6 +488,7 @@
       .paper::before { left: 1.25rem; }
       .prompt-label, textarea { padding-left: 0.75rem; }
       .letter-actions { flex-direction: column; align-items: center; }
+      .lang-select { top: 0.75rem; right: 0.75rem; }
     }
   </style>
 </head>
@@ -466,43 +497,73 @@
   <canvas id="dot-canvas"></canvas>
   <div class="grain"></div>
 
+  <!-- ── Language selector ──────────────────────── -->
+  <select class="lang-select" id="lang-select" aria-label="Select language">
+    <option value="en">English</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="de">Deutsch</option>
+    <option value="pt">Português</option>
+    <option value="ro">Română</option>
+    <option value="hu">Magyar</option>
+    <option value="pl">Polski</option>
+    <option value="uk">Українська</option>
+    <option value="ru">Русский</option>
+    <option value="it">Italiano</option>
+    <option value="sv">Svenska</option>
+    <option value="nl">Nederlands</option>
+    <option value="da">Dansk</option>
+    <option value="no">Norsk</option>
+    <option value="fi">Suomi</option>
+    <option value="cs">Čeština</option>
+    <option value="sk">Slovenčina</option>
+    <option value="hr">Hrvatski</option>
+    <option value="bg">Български</option>
+    <option value="el">Ελληνικά</option>
+    <option value="tr">Türkçe</option>
+    <option value="lt">Lietuvių</option>
+    <option value="lv">Latviešu</option>
+    <option value="sl">Slovenščina</option>
+  </select>
+
   <!-- ── Write screen ────────────────────────────── -->
   <div id="write-screen" class="screen active">
     <div class="container">
       <header>
-        <span class="eyebrow">A letter through time</span>
-        <h1>Letters from<br><em>Your Future Self</em></h1>
-        <p class="subtitle">Write honestly. Your future self will write back.</p>
+        <span class="eyebrow" id="i18n-eyebrow">A letter through time</span>
+        <h1 id="i18n-h1">Letters from<br><em>Your Future Self</em></h1>
+        <p class="subtitle" id="i18n-subtitle">Write honestly. Your future self will write back.</p>
       </header>
 
       <div class="paper">
-        <label class="prompt-label">What's been weighing on you lately?</label>
-        <textarea id="user-message" placeholder="Start writing... there's no wrong way to do this." rows="10" autofocus></textarea>
-        <p class="card-note">Write in any language — your future self will reply in kind.<br>Your letters are private. We never store or read your words.</p>
+        <label class="prompt-label" id="i18n-prompt-label">What's been weighing on you lately?</label>
+        <textarea id="user-message" placeholder="Start writing… there's no wrong way to do this." rows="10" autofocus></textarea>
+        <p class="card-note" id="i18n-card-note">Write in any language — your future self will reply in kind.<br>Your letters are private. We never store or read your words.</p>
         <div class="paper-footer">
           <span class="date-stamp" id="today-date"></span>
           <button class="btn btn-primary" id="send-btn">Send &rarr;</button>
         </div>
       </div>
 
-      <p class="hint">Press ⌘ + Enter to send</p>
+      <p class="hint" id="i18n-hint">Press ⌘ + Enter to send</p>
 
       <div class="prompts-section">
         <button class="prompts-toggle" onclick="togglePrompts()">
-          Don't know what to write about? <span class="prompts-arrow" id="prompts-arrow">↓</span>
+          <span id="i18n-prompts-toggle">Don't know what to write about?</span>
+          <span class="prompts-arrow" id="prompts-arrow">↓</span>
         </button>
         <div class="prompts-body" id="prompts-body">
-          <p class="prompts-heading">Write about yourself</p>
-          <p class="prompts-sub">You could write about…</p>
+          <p class="prompts-heading" id="i18n-prompts-heading">Write about yourself</p>
+          <p class="prompts-sub" id="i18n-prompts-sub">You could write about…</p>
           <ul class="prompts-list">
-            <li><span class="emoji">🌿</span> your hopes and dreams for the years ahead</li>
-            <li><span class="emoji">💭</span> something that's been on your mind lately</li>
-            <li><span class="emoji">🙏</span> who or what you're grateful for right now</li>
-            <li><span class="emoji">💪</span> something difficult you've been through</li>
-            <li><span class="emoji">🌱</span> something you've recently learned about yourself</li>
-            <li><span class="emoji">✨</span> a recent moment of pride or quiet joy</li>
-            <li><span class="emoji">💔</span> something that's been weighing heavy on your heart</li>
-            <li><span class="emoji">🔮</span> a worry you hope won't matter in ten years</li>
+            <li><span class="emoji">🌿</span><span id="i18n-p1">your hopes and dreams for the years ahead</span></li>
+            <li><span class="emoji">💭</span><span id="i18n-p2">something that's been on your mind lately</span></li>
+            <li><span class="emoji">🙏</span><span id="i18n-p3">who or what you're grateful for right now</span></li>
+            <li><span class="emoji">💪</span><span id="i18n-p4">something difficult you've been through</span></li>
+            <li><span class="emoji">🌱</span><span id="i18n-p5">something you've recently learned about yourself</span></li>
+            <li><span class="emoji">✨</span><span id="i18n-p6">a recent moment of pride or quiet joy</span></li>
+            <li><span class="emoji">💔</span><span id="i18n-p7">something that's been weighing heavy on your heart</span></li>
+            <li><span class="emoji">🔮</span><span id="i18n-p8">a worry you hope won't matter in ten years</span></li>
           </ul>
         </div>
       </div>
@@ -513,8 +574,8 @@
   <!-- ── Loading screen ─────────────────────────── -->
   <div id="loading-screen" class="screen">
     <div class="container">
-      <p class="loading-eyebrow">From 2036</p>
-      <p class="loading-text">Your future self<br>is writing<span class="dots"></span></p>
+      <p class="loading-eyebrow" id="i18n-loading-eyebrow">From 2036</p>
+      <p class="loading-text" id="i18n-loading-text">Your future self<br>is writing<span class="dots"></span></p>
     </div>
   </div>
 
@@ -543,7 +604,7 @@
         <div class="letter-date" id="letter-date"></div>
         <div class="letter-body" id="letter-body"></div>
         <div class="letter-signature" id="letter-signature">
-          <p>With love,</p>
+          <p id="i18n-with-love">With love,</p>
           <p class="sig-name" id="sig-name"></p>
         </div>
       </div>
@@ -557,8 +618,8 @@
       <p class="copy-confirm" id="copy-confirm">Link copied to clipboard</p>
 
       <div class="shared-banner" id="shared-banner">
-        <p>This letter was written using Letters from Your Future Self.</p>
-        <button class="btn btn-primary" onclick="reset()">Write your own &rarr;</button>
+        <p id="i18n-shared-text">This letter was written using Letters from Your Future Self.</p>
+        <button class="btn btn-primary" id="i18n-write-own" onclick="reset()">Write your own &rarr;</button>
       </div>
 
     </div>

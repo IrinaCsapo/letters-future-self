@@ -190,70 +190,58 @@
     /* ── Language selector (hidden, kept for sync) ── */
     .lang-select { display: none !important; }
 
-    /* ── Language picker ─────────────────────────── */
-    .lang-picker {
+    /* ── Subtitle + inline language trigger ──────── */
+    .subtitle-wrap {
       position: relative;
       display: inline-block;
-      margin-top: 1.5rem;
+      max-width: 100%;
     }
 
-    .lang-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.42rem;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 0.92rem;
-      font-style: italic;
-      font-weight: 400;
-      color: rgba(22,18,52,0.52);
-      background: rgba(254,252,248,0.6);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(26,25,40,0.14);
-      padding: 0.48rem 1.05rem 0.48rem 0.88rem;
+    .lang-inline-trigger {
+      display: inline;
+      background: none;
+      border: none;
+      border-bottom: 1.5px solid rgba(75,94,232,0.38);
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      color: rgba(75,94,232,0.78);
       cursor: pointer;
-      transition: all 0.22s ease;
-      letter-spacing: 0.01em;
-      border-radius: 0;
+      padding: 0;
+      line-height: inherit;
       outline: none;
+      transition: color 0.18s, border-color 0.18s;
     }
 
-    .lang-pill:hover {
-      color: rgba(22,18,52,0.82);
-      border-color: rgba(26,25,40,0.28);
-      background: rgba(254,252,248,0.88);
+    .lang-inline-trigger:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
 
-    .lang-pill.open {
-      color: var(--ink);
-      border-color: rgba(75,94,232,0.35);
-      background: rgba(254,252,248,0.96);
+    .lang-inline-trigger.open {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
 
-    .lang-globe-icon {
-      opacity: 0.45;
-      flex-shrink: 0;
-      position: relative;
-      top: -0.5px;
-    }
-
-    .lang-chevron {
+    .lang-chevron-inline {
       font-style: normal;
-      font-size: 0.65rem;
-      opacity: 0.38;
-      transition: transform 0.25s ease, opacity 0.2s;
+      font-size: 0.6em;
+      opacity: 0.55;
+      margin-left: 0.18em;
       display: inline-block;
-      margin-left: 0.1rem;
+      transition: transform 0.2s ease;
+      vertical-align: middle;
     }
 
-    .lang-pill.open .lang-chevron {
+    .lang-inline-trigger.open .lang-chevron-inline {
       transform: rotate(180deg);
-      opacity: 0.6;
     }
 
+    /* ── Language panel ──────────────────────────── */
     .lang-panel {
       position: absolute;
-      top: calc(100% + 0.65rem);
+      top: calc(100% + 0.75rem);
       left: 50%;
       transform: translateX(-50%) translateY(-6px);
       width: 380px;
@@ -654,15 +642,8 @@
       <header>
         <span class="eyebrow" id="i18n-eyebrow">A letter through time</span>
         <h1 id="i18n-h1">Letters from<br><em>Your Future Self</em></h1>
-        <p class="subtitle" id="i18n-subtitle">Write honestly. Write in any language, your future self will reply in kind.</p>
-
-        <!-- ── Language picker ──────────────────── -->
-        <div class="lang-picker" id="lang-picker">
-          <button class="lang-pill" id="lang-pill" onclick="toggleLangPicker()" aria-haspopup="true" aria-expanded="false">
-            <svg class="lang-globe-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span id="lang-pill-name">English</span>
-            <span class="lang-chevron">↓</span>
-          </button>
+        <div class="subtitle-wrap" id="subtitle-wrap">
+          <p class="subtitle" id="i18n-subtitle">Write honestly. Write in <button class="lang-inline-trigger" id="lang-pill" onclick="toggleLangPicker()" aria-haspopup="true" aria-expanded="false">English<span class="lang-chevron-inline">↓</span></button>, your future self will reply in kind.</p>
           <div class="lang-panel" id="lang-panel" role="dialog" aria-label="Select language">
             <span class="lang-panel-label">Choose your language</span>
             <div class="lang-grid">

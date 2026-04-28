@@ -22,7 +22,7 @@ const TRANSLATIONS = {
   en: {
     eyebrow:'A letter through time',
     h1:'Letters from<br><em>Your Future Self</em>',
-    subtitle:'Write honestly. Write in any language, your future self will reply in kind.',
+    subtitle:'Write honestly. Write in {lang}, your future self will reply in kind.',
     prompt_label:"What's been weighing on you lately?",
     placeholder:"Start writing… there's no wrong way to do this.",
     note_language:'Write in any language — your future self will reply in kind.',
@@ -58,7 +58,7 @@ const TRANSLATIONS = {
   es: {
     eyebrow:'Una carta a través del tiempo',
     h1:'Cartas de<br><em>Tu Yo Futuro</em>',
-    subtitle:'Escribe con honestidad. Tu yo futuro te responderá.',
+    subtitle:'Escribe con honestidad. Escribe en {lang} — tu yo futuro te responderá.',
     prompt_label:'¿Qué ha pesado en ti últimamente?',
     placeholder:'Empieza a escribir… no hay forma incorrecta de hacerlo.',
     note_language:'Escribe en cualquier idioma — tu yo futuro responderá en el mismo.',
@@ -94,7 +94,7 @@ const TRANSLATIONS = {
   fr: {
     eyebrow:'Une lettre à travers le temps',
     h1:'Lettres de<br><em>Ton Futur Toi</em>',
-    subtitle:'Écris honnêtement. Ton futur toi te répondra.',
+    subtitle:'Écris honnêtement. Écris en {lang} — ton futur toi te répondra.',
     prompt_label:'Qu’est-ce qui te pèse en ce moment ?',
     placeholder:'Commence à écrire… il n’y a pas de mauvaise façon.',
     note_language:'Écris dans n’importe quelle langue — ton futur toi répondra de même.',
@@ -130,7 +130,7 @@ const TRANSLATIONS = {
   de: {
     eyebrow:'Ein Brief durch die Zeit',
     h1:'Briefe von<br><em>Deinem Zukünftigen Ich</em>',
-    subtitle:'Schreib ehrlich. Dein zukünftiges Ich wird dir antworten.',
+    subtitle:'Schreib ehrlich. Schreib auf {lang} — dein zukünftiges Ich antwortet.',
     prompt_label:'Was beschäftigt dich gerade?',
     placeholder:'Fang einfach an zu schreiben… es gibt keinen falschen Weg.',
     note_language:'Schreib in jeder Sprache — dein zukünftiges Ich antwortet in derselben.',
@@ -166,7 +166,7 @@ const TRANSLATIONS = {
   pt: {
     eyebrow:'Uma carta através do tempo',
     h1:'Cartas do<br><em>Seu Eu Futuro</em>',
-    subtitle:'Escreva com honestidade. Seu eu futuro vai responder.',
+    subtitle:'Escreva com honestidade. Escreva em {lang} — seu eu futuro vai responder.',
     prompt_label:'O que tem pesado em você ultimamente?',
     placeholder:'Comece a escrever… não há forma errada de fazer isso.',
     note_language:'Escreva em qualquer idioma — seu eu futuro responderá na mesma língua.',
@@ -202,7 +202,7 @@ const TRANSLATIONS = {
   ro: {
     eyebrow:'O scrisoare prin timp',
     h1:'Scrisori de la<br><em>Eul Tău Viitor</em>',
-    subtitle:'Scrie sincer. Eul tău viitor îți va răspunde.',
+    subtitle:'Scrie sincer. Scrie în {lang} — eul tău viitor îți va răspunde.',
     prompt_label:'Ce te apasă în ultima vreme?',
     placeholder:'Începe să scrii… nu există o modalitate greșită.',
     note_language:'Scrie în orice limbă — eul tău viitor va răspunde în aceeași limbă.',
@@ -238,7 +238,7 @@ const TRANSLATIONS = {
   hu: {
     eyebrow:'Egy levél az időn át',
     h1:'Levelek<br><em>Jövőbeli Éned Tollából</em>',
-    subtitle:'Írj őszintén. Jövőbeli éned válaszolni fog.',
+    subtitle:'Írj őszintén, {lang} nyelven — jövőbeli éned válaszolni fog.',
     prompt_label:'Mi nyomasztott az utóbbi időben?',
     placeholder:'Kezdj el írni… nincs rossz módszer.',
     note_language:'Írj bármilyen nyelven — jövőbeli éned ugyanazon a nyelven válaszol.',
@@ -274,7 +274,7 @@ const TRANSLATIONS = {
   pl: {
     eyebrow:'List przez czas',
     h1:'Listy od<br><em>Twojego Przyszłego Ja</em>',
-    subtitle:'Pisz szczerze. Twoje przyszłe ja odpisze.',
+    subtitle:'Pisz szczerze, w języku {lang} — twoje przyszłe ja odpisze.',
     prompt_label:'Co ostatnio Cię przygnębia?',
     placeholder:'Zacznij pisać… nie ma złego sposobu na to.',
     note_language:'Pisz w dowolnym języku — Twoje przyszłe ja odpowie w tym samym.',
@@ -310,7 +310,7 @@ const TRANSLATIONS = {
   uk: {
     eyebrow:'Лист крізь час',
     h1:'Листи від<br><em>Твого Майбутнього Я</em>',
-    subtitle:'Пиши відверто. Твоє майбутнє я відповість.',
+    subtitle:'Пиши відверто, мовою {lang} — твоє майбутнє я відповість.',
     prompt_label:'Що тебе турбує останнім часом?',
     placeholder:'Починай писати… немає неправильного способу.',
     note_language:'Пиши будь-якою мовою — твоє майбутнє я відповість тією самою.',
@@ -346,7 +346,7 @@ const TRANSLATIONS = {
   ru: {
     eyebrow:'Письмо сквозь время',
     h1:'Письма от<br><em>Твоего Будущего Я</em>',
-    subtitle:'Пиши честно. Твоё будущее я ответит.',
+    subtitle:'Пиши честно, на {lang} — твоё будущее я ответит.',
     prompt_label:'Что тебя тревожит в последнее время?',
     placeholder:'Начни писать… нет неправильного способа.',
     note_language:'Пиши на любом языке — твоё будущее я ответит на том же.',
@@ -382,7 +382,7 @@ const TRANSLATIONS = {
   it: {
     eyebrow:'Una lettera attraverso il tempo',
     h1:'Lettere dal<br><em>Tuo Sé Futuro</em>',
-    subtitle:'Scrivi onestamente. Il tuo sé futuro risponderà.',
+    subtitle:'Scrivi onestamente. Scrivi in {lang} — il tuo sé futuro risponderà.',
     prompt_label:'Cosa ti pesa ultimamente?',
     placeholder:'Inizia a scrivere… non esiste un modo sbagliato.',
     note_language:'Scrivi in qualsiasi lingua — il tuo sé futuro risponderà nella stessa.',
@@ -418,7 +418,7 @@ const TRANSLATIONS = {
   sv: {
     eyebrow:'Ett brev genom tiden',
     h1:'Brev från<br><em>Ditt Framtida Jag</em>',
-    subtitle:'Skriv ärligt. Ditt framtida jag kommer att svara.',
+    subtitle:'Skriv ärligt. Skriv på {lang} — ditt framtida jag svarar.',
     prompt_label:'Vad har tyngt dig på sistone?',
     placeholder:'Börja skriva… det finns inget fel sätt.',
     note_language:'Skriv på vilket språk som helst — ditt framtida jag svarar på samma.',
@@ -454,7 +454,7 @@ const TRANSLATIONS = {
   nl: {
     eyebrow:'Een brief door de tijd',
     h1:'Brieven van<br><em>Jouw Toekomstige Zelf</em>',
-    subtitle:'Schrijf eerlijk. Jouw toekomstige zelf zal antwoorden.',
+    subtitle:'Schrijf eerlijk. Schrijf in {lang} — jouw toekomstige zelf antwoordt.',
     prompt_label:'Wat houdt je de laatste tijd bezig?',
     placeholder:'Begin te schrijven… er is geen verkeerde manier.',
     note_language:'Schrijf in elke taal — jouw toekomstige zelf antwoordt in dezelfde taal.',
@@ -490,7 +490,7 @@ const TRANSLATIONS = {
   da: {
     eyebrow:'Et brev gennem tiden',
     h1:'Breve fra<br><em>Dit Fremtidige Selv</em>',
-    subtitle:'Skriv ærligt. Dit fremtidige selv vil svare.',
+    subtitle:'Skriv ærligt. Skriv på {lang} — dit fremtidige selv vil svare.',
     prompt_label:'Hvad har tynget dig for nylig?',
     placeholder:'Begynd at skrive… der er ingen forkert måde.',
     note_language:'Skriv på ethvert sprog — dit fremtidige selv svarer på samme.',
@@ -526,7 +526,7 @@ const TRANSLATIONS = {
   no: {
     eyebrow:'Et brev gjennom tid',
     h1:'Brev fra<br><em>Ditt Fremtidige Jeg</em>',
-    subtitle:'Skriv ærlig. Ditt fremtidige jeg vil svare.',
+    subtitle:'Skriv ærlig. Skriv på {lang} — ditt fremtidige jeg vil svare.',
     prompt_label:'Hva har tynget deg i det siste?',
     placeholder:'Begynn å skrive… det finnes ingen feil måte.',
     note_language:'Skriv på et hvilket som helst språk — ditt fremtidige jeg svarer på samme.',
@@ -562,7 +562,7 @@ const TRANSLATIONS = {
   fi: {
     eyebrow:'Kirje ajassa',
     h1:'Kirjeitä<br><em>Tulevalta Sinältä</em>',
-    subtitle:'Kirjoita rehellisesti. Tuleva sinä vastaa.',
+    subtitle:'Kirjoita rehellisesti, {lang} — tuleva sinä vastaa.',
     prompt_label:'Mikä on painanut mieltäsi viime aikoina?',
     placeholder:'Aloita kirjoittaminen… ei ole väärää tapaa.',
     note_language:'Kirjoita millä kielellä tahansa — tuleva sinä vastaa samalla kielellä.',
@@ -598,7 +598,7 @@ const TRANSLATIONS = {
   cs: {
     eyebrow:'Dopis skrze čas',
     h1:'Dopisy od<br><em>Tvého Budoucího Já</em>',
-    subtitle:'Piš upřímně. Tvé budoucí já odepíše.',
+    subtitle:'Piš upřímně, v {lang} — tvé budoucí já odepíše.',
     prompt_label:'Co tě v poslední době tíží?',
     placeholder:'Začni psát… neexistuje špatný způsob.',
     note_language:'Piš v jakémkoli jazyce — tvé budoucí já odpoví ve stejném.',
@@ -634,7 +634,7 @@ const TRANSLATIONS = {
   sk: {
     eyebrow:'List cez čas',
     h1:'Listy od<br><em>Tvojho Budúceho Ja</em>',
-    subtitle:'Píš úprimne. Tvoje budúce ja odpíše.',
+    subtitle:'Píš úprimne, v {lang} — tvoje budúce ja odpíše.',
     prompt_label:'Čo ťa v poslednom čase trápi?',
     placeholder:'Začni písať… neexistuje zlý spôsob.',
     note_language:'Píš v akomkoľvek jazyku — tvoje budúce ja odpovie v rovnakom.',
@@ -670,7 +670,7 @@ const TRANSLATIONS = {
   hr: {
     eyebrow:'Pismo kroz vrijeme',
     h1:'Pisma od<br><em>Tvog Budućeg Ja</em>',
-    subtitle:'Piši iskreno. Tvoje buduće ja odgovorit će.',
+    subtitle:'Piši iskreno. Piši na {lang} — tvoje buduće ja odgovorit će.',
     prompt_label:'Što te opterećuje posljednje vrijeme?',
     placeholder:'Počni pisati… nema pogrešnog načina.',
     note_language:'Piši na bilo kojem jeziku — tvoje buduće ja odgovorit će na istom.',
@@ -706,7 +706,7 @@ const TRANSLATIONS = {
   bg: {
     eyebrow:'Писмо през времето',
     h1:'Писма от<br><em>Бъдещото Ти Аз</em>',
-    subtitle:'Пиши честно. Бъдещото ти аз ще отговори.',
+    subtitle:'Пиши честно, на {lang} — бъдещото ти аз ще отговори.',
     prompt_label:'Какво те тревожи напоследък?',
     placeholder:'Започни да пишеш… няма грешен начин.',
     note_language:'Пиши на всеки език — бъдещото ти аз ще отговори на същия.',
@@ -742,7 +742,7 @@ const TRANSLATIONS = {
   el: {
     eyebrow:'Ένα γράμμα μέσα στον χρόνο',
     h1:'Γράμματα από<br><em>τον Μελλοντικό σου Εαυτό</em>',
-    subtitle:'Γράψε ειλικρινά. Ο μελλοντικός σου εαυτός θα απαντήσει.',
+    subtitle:'Γράψε ειλικρινά. Γράψε στα {lang} — ο μελλοντικός σου εαυτός θα απαντήσει.',
     prompt_label:'Τι σε βαραίνει τον τελευταίο καιρό;',
     placeholder:'Ξεκίνα να γράφεις… δεν υπάρχει λάθος τρόπος.',
     note_language:'Γράψε σε οποιαδήποτε γλώσσα — ο μελλοντικός σου εαυτός θα απαντήσει στην ίδια.',
@@ -778,7 +778,7 @@ const TRANSLATIONS = {
   tr: {
     eyebrow:'Zamanda bir mektup',
     h1:'Gelecekteki Kendinizden<br><em>Mektuplar</em>',
-    subtitle:'Dürüstçe yaz. Gelecekteki kendin yanıt verecek.',
+    subtitle:'Dürüstçe yaz. {lang} dilinde yaz — gelecekteki kendin yanıt verecek.',
     prompt_label:'Son zamanlarda seni ne ağırladı?',
     placeholder:'Yazmaya başla… yanlış bir yolu yok.',
     note_language:'Herhangi bir dilde yaz — gelecekteki kendin aynı dilde yanıt verir.',
@@ -814,7 +814,7 @@ const TRANSLATIONS = {
   lt: {
     eyebrow:'Laiškas per laiką',
     h1:'Laiškai nuo<br><em>Tavo Būsimojo Aš</em>',
-    subtitle:'Rašyk nuoširdžiai. Tavo būsimasis aš atsakys.',
+    subtitle:'Rašyk nuoširdžiai, {lang} — tavo būsimasis aš atsakys.',
     prompt_label:'Kas tave slegia pastaruoju metu?',
     placeholder:'Pradėk rašyti… nėra netinkamo būdo.',
     note_language:'Rašyk bet kuria kalba — tavo būsimasis aš atsakys ta pačia.',
@@ -850,7 +850,7 @@ const TRANSLATIONS = {
   lv: {
     eyebrow:'Vēstule cauri laikam',
     h1:'Vēstules no<br><em>Tava Nākotnes Es</em>',
-    subtitle:'Raksti godīgi. Tavs nākotnes es atbildēs.',
+    subtitle:'Raksti godīgi, {lang} — tavs nākotnes es atbildēs.',
     prompt_label:'Kas tevi ir slogojis pēdējā laikā?',
     placeholder:'Sāc rakstīt… nav nepareizas metodes.',
     note_language:'Raksti jebkurā valodā — tavs nākotnes es atbildēs tajā pašā.',
@@ -886,7 +886,7 @@ const TRANSLATIONS = {
   sl: {
     eyebrow:'Pismo skozi čas',
     h1:'Pisma od<br><em>Tvojega Prihodnjega Jaza</em>',
-    subtitle:'Piši iskreno. Tvoj prihodnji jaz bo odgovoril.',
+    subtitle:'Piši iskreno. Piši v {lang} — tvoj prihodnji jaz bo odgovoril.',
     prompt_label:'Kaj te zadnje čase teži?',
     placeholder:'Začni pisati… ni napačnega načina.',
     note_language:'Piši v katerem koli jeziku — tvoj prihodnji jaz bo odgovoril v istem.',
@@ -1484,9 +1484,14 @@ function setLanguage(lang) {
   document.documentElement.lang = lang;
 
   // Header
-  document.getElementById('i18n-eyebrow').textContent   = T('eyebrow');
-  document.getElementById('i18n-h1').innerHTML           = T('h1');
-  document.getElementById('i18n-subtitle').textContent   = T('subtitle');
+  document.getElementById('i18n-eyebrow').textContent = T('eyebrow');
+  document.getElementById('i18n-h1').innerHTML         = T('h1');
+
+  // Subtitle with inline language trigger
+  const subtitleEl = document.getElementById('i18n-subtitle');
+  const subtitleText = T('subtitle');
+  const triggerHTML = `<button class="lang-inline-trigger" id="lang-pill" onclick="toggleLangPicker()" aria-haspopup="true" aria-expanded="false">${LANG_NAMES[lang]}<span class="lang-chevron-inline">↓</span></button>`;
+  subtitleEl.innerHTML = subtitleText.replace('{lang}', triggerHTML);
 
   // Write card
   document.getElementById('i18n-prompt-label').textContent = T('prompt_label');
@@ -1529,10 +1534,6 @@ function setLanguage(lang) {
   const sel = document.getElementById('lang-select');
   if (sel) sel.value = lang;
 
-  // Update pill label
-  const pillName = document.getElementById('lang-pill-name');
-  if (pillName) pillName.textContent = LANG_NAMES[lang] || lang;
-
   // Update active state on grid buttons
   document.querySelectorAll('.lang-opt').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === lang);
@@ -1570,9 +1571,9 @@ function closeLangPicker() {
   if (panel) panel.classList.remove('open');
 }
 
-// Close when clicking outside the picker
+// Close when clicking outside the subtitle-wrap / panel
 document.addEventListener('click', e => {
-  if (!e.target.closest('#lang-picker')) closeLangPicker();
+  if (!e.target.closest('#subtitle-wrap')) closeLangPicker();
 });
 
 // Language option click handlers

@@ -8,6 +8,16 @@ const LOCALES = {
   el:'el-GR', tr:'tr-TR', lt:'lt-LT', lv:'lv-LV', sl:'sl-SI',
 };
 
+const LANG_NAMES = {
+  en:'English',    es:'Español',     fr:'Français',   de:'Deutsch',
+  pt:'Português',  ro:'Română',      hu:'Magyar',      pl:'Polski',
+  uk:'Українська', ru:'Русский',     it:'Italiano',    sv:'Svenska',
+  nl:'Nederlands', da:'Dansk',       no:'Norsk',       fi:'Suomi',
+  cs:'Čeština',    sk:'Slovenčina',  hr:'Hrvatski',    bg:'Български',
+  el:'Ελληνικά',   tr:'Türkçe',      lt:'Lietuvių',    lv:'Latviešu',
+  sl:'Slovenščina',
+};
+
 const TRANSLATIONS = {
   en: {
     eyebrow:'A letter through time',
@@ -1515,8 +1525,18 @@ function setLanguage(lang) {
   document.getElementById('today-date').textContent  = formatDate(today);
   document.getElementById('letter-date').textContent = formatDate(futureDate);
 
-  // Sync dropdown
-  document.getElementById('lang-select').value = lang;
+  // Sync hidden select
+  const sel = document.getElementById('lang-select');
+  if (sel) sel.value = lang;
+
+  // Update pill label
+  const pillName = document.getElementById('lang-pill-name');
+  if (pillName) pillName.textContent = LANG_NAMES[lang] || lang;
+
+  // Update active state on grid buttons
+  document.querySelectorAll('.lang-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
 }
 
 // ── Language auto-detect + init ────────────────────────
@@ -1527,6 +1547,43 @@ function setLanguage(lang) {
   setLanguage(saved || detected);
 })();
 
+// ── Language picker toggle ─────────────────────────────
+function toggleLangPicker() {
+  const pill  = document.getElementById('lang-pill');
+  const panel = document.getElementById('lang-panel');
+  const isOpen = pill.classList.contains('open');
+  if (isOpen) {
+    pill.classList.remove('open');
+    panel.classList.remove('open');
+    pill.setAttribute('aria-expanded', 'false');
+  } else {
+    pill.classList.add('open');
+    panel.classList.add('open');
+    pill.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function closeLangPicker() {
+  const pill  = document.getElementById('lang-pill');
+  const panel = document.getElementById('lang-panel');
+  if (pill)  { pill.classList.remove('open');  pill.setAttribute('aria-expanded', 'false'); }
+  if (panel) panel.classList.remove('open');
+}
+
+// Close when clicking outside the picker
+document.addEventListener('click', e => {
+  if (!e.target.closest('#lang-picker')) closeLangPicker();
+});
+
+// Language option click handlers
+document.querySelectorAll('.lang-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setLanguage(btn.dataset.lang);
+    closeLangPicker();
+  });
+});
+
+// Keep hidden select in sync (if changed programmatically elsewhere)
 document.getElementById('lang-select').addEventListener('change', e => {
   setLanguage(e.target.value);
 });

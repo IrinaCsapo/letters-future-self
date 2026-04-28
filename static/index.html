@@ -187,35 +187,145 @@
       background-size: 256px 256px;
     }
 
-    /* ── Language selector ───────────────────────── */
-    .lang-select {
-      position: fixed;
-      top: 1.2rem;
-      right: 1.5rem;
-      z-index: 10;
-      background: rgba(254,252,248,0.88);
+    /* ── Language selector (hidden, kept for sync) ── */
+    .lang-select { display: none !important; }
+
+    /* ── Language picker ─────────────────────────── */
+    .lang-picker {
+      position: relative;
+      display: inline-block;
+      margin-top: 1.5rem;
+    }
+
+    .lang-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.92rem;
+      font-style: italic;
+      font-weight: 400;
+      color: rgba(22,18,52,0.52);
+      background: rgba(254,252,248,0.6);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(26,25,40,0.18);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 400;
-      letter-spacing: 0.05em;
-      color: var(--ink-soft);
-      padding: 0.35rem 1.5rem 0.35rem 0.65rem;
+      border: 1px solid rgba(26,25,40,0.14);
+      padding: 0.48rem 1.05rem 0.48rem 0.88rem;
       cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-      outline: none;
-      transition: border-color 0.2s;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%237A7490'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.5rem center;
-      background-size: 6px;
+      transition: all 0.22s ease;
+      letter-spacing: 0.01em;
       border-radius: 0;
+      outline: none;
     }
-    .lang-select:hover { border-color: rgba(26,25,40,0.4); color: var(--ink); }
-    .lang-select:focus { border-color: var(--accent); outline: none; }
+
+    .lang-pill:hover {
+      color: rgba(22,18,52,0.82);
+      border-color: rgba(26,25,40,0.28);
+      background: rgba(254,252,248,0.88);
+    }
+
+    .lang-pill.open {
+      color: var(--ink);
+      border-color: rgba(75,94,232,0.35);
+      background: rgba(254,252,248,0.96);
+    }
+
+    .lang-globe-icon {
+      opacity: 0.45;
+      flex-shrink: 0;
+      position: relative;
+      top: -0.5px;
+    }
+
+    .lang-chevron {
+      font-style: normal;
+      font-size: 0.65rem;
+      opacity: 0.38;
+      transition: transform 0.25s ease, opacity 0.2s;
+      display: inline-block;
+      margin-left: 0.1rem;
+    }
+
+    .lang-pill.open .lang-chevron {
+      transform: rotate(180deg);
+      opacity: 0.6;
+    }
+
+    .lang-panel {
+      position: absolute;
+      top: calc(100% + 0.65rem);
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      width: 380px;
+      background: rgba(254,252,248,0.98);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(26,25,40,0.10);
+      box-shadow:
+        0 2px 12px rgba(160,120,200,0.10),
+        0 8px 32px rgba(180,130,210,0.13),
+        0 20px 60px rgba(200,150,220,0.10);
+      padding: 1.1rem 1.1rem 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 20;
+    }
+
+    .lang-panel.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .lang-panel-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(22,18,52,0.35);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .lang-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.18rem;
+    }
+
+    .lang-opt {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.64rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: rgba(22,18,52,0.58);
+      padding: 0.44rem 0.5rem;
+      text-align: left;
+      transition: all 0.13s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-radius: 0;
+      outline: none;
+    }
+
+    .lang-opt:hover {
+      color: var(--ink);
+      background: rgba(75,94,232,0.06);
+    }
+
+    .lang-opt.active {
+      color: var(--accent);
+    }
+
+    @media (max-width: 520px) {
+      .lang-panel { width: 300px; }
+      .lang-grid { grid-template-columns: repeat(3, 1fr); }
+    }
 
     /* ── Paper card ──────────────────────────────── */
     .paper {
@@ -501,7 +611,6 @@
       .paper-footer { flex-wrap: wrap; gap: 0.75rem; }
       .card-note { max-width: 100%; }
       .letter-actions { flex-direction: column; align-items: center; }
-      .lang-select { top: 0.75rem; right: 0.75rem; }
     }
   </style>
 </head>
@@ -510,7 +619,7 @@
   <canvas id="dot-canvas"></canvas>
   <div class="grain"></div>
 
-  <!-- ── Language selector ──────────────────────── -->
+  <!-- ── Language selector (hidden, kept for sync) ─ -->
   <select class="lang-select" id="lang-select" aria-label="Select language">
     <option value="en">English</option>
     <option value="es">Español</option>
@@ -546,6 +655,45 @@
         <span class="eyebrow" id="i18n-eyebrow">A letter through time</span>
         <h1 id="i18n-h1">Letters from<br><em>Your Future Self</em></h1>
         <p class="subtitle" id="i18n-subtitle">Write honestly. Write in any language, your future self will reply in kind.</p>
+
+        <!-- ── Language picker ──────────────────── -->
+        <div class="lang-picker" id="lang-picker">
+          <button class="lang-pill" id="lang-pill" onclick="toggleLangPicker()" aria-haspopup="true" aria-expanded="false">
+            <svg class="lang-globe-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span id="lang-pill-name">English</span>
+            <span class="lang-chevron">↓</span>
+          </button>
+          <div class="lang-panel" id="lang-panel" role="dialog" aria-label="Select language">
+            <span class="lang-panel-label">Choose your language</span>
+            <div class="lang-grid">
+              <button class="lang-opt" data-lang="en">English</button>
+              <button class="lang-opt" data-lang="es">Español</button>
+              <button class="lang-opt" data-lang="fr">Français</button>
+              <button class="lang-opt" data-lang="de">Deutsch</button>
+              <button class="lang-opt" data-lang="pt">Português</button>
+              <button class="lang-opt" data-lang="ro">Română</button>
+              <button class="lang-opt" data-lang="hu">Magyar</button>
+              <button class="lang-opt" data-lang="pl">Polski</button>
+              <button class="lang-opt" data-lang="uk">Українська</button>
+              <button class="lang-opt" data-lang="ru">Русский</button>
+              <button class="lang-opt" data-lang="it">Italiano</button>
+              <button class="lang-opt" data-lang="sv">Svenska</button>
+              <button class="lang-opt" data-lang="nl">Nederlands</button>
+              <button class="lang-opt" data-lang="da">Dansk</button>
+              <button class="lang-opt" data-lang="no">Norsk</button>
+              <button class="lang-opt" data-lang="fi">Suomi</button>
+              <button class="lang-opt" data-lang="cs">Čeština</button>
+              <button class="lang-opt" data-lang="sk">Slovenčina</button>
+              <button class="lang-opt" data-lang="hr">Hrvatski</button>
+              <button class="lang-opt" data-lang="bg">Български</button>
+              <button class="lang-opt" data-lang="el">Ελληνικά</button>
+              <button class="lang-opt" data-lang="tr">Türkçe</button>
+              <button class="lang-opt" data-lang="lt">Lietuvių</button>
+              <button class="lang-opt" data-lang="lv">Latviešu</button>
+              <button class="lang-opt" data-lang="sl">Slovenščina</button>
+            </div>
+          </div>
+        </div>
       </header>
 
       <div class="paper">

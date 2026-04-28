@@ -34,6 +34,11 @@ def index():
     return send_from_directory('static', 'index.html')
 
 
+@app.route('/about')
+def about():
+    return send_from_directory('static', 'about.html')
+
+
 @app.route('/generate', methods=['POST'])
 def generate_letter():
     data = request.get_json()

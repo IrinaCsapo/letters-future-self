@@ -176,6 +176,21 @@
     }
     .prompts-list li span.emoji { font-style: normal; flex-shrink: 0; }
 
+    /* ── Page footer link ────────────────────────── */
+    .page-footer-link {
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .page-footer-link a {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(22,18,52,0.32);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .page-footer-link a:hover { color: rgba(22,18,52,0.65); }
+
     /* ── Grain overlay ───────────────────────────── */
     .grain {
       position: fixed;
@@ -709,6 +724,8 @@
           </ul>
         </div>
       </div>
+
+      <p class="page-footer-link"><a href="/about">About this project</a></p>
 
     </div>
   </div>

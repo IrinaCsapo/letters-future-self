@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — Letters from Your Future Self</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #F5F1FA;
+      --paper:    #FEFCF8;
+      --ink:      #1A1928;
+      --ink-soft: #7A7490;
+      --accent:   #4B5EE8;
+      --rule:     #E2DDD6;
+      --light:    rgba(22,18,52,0.88);
+      --soft:     rgba(22,18,52,0.42);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--light);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas ──────────────────────────────────── */
+    #dot-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Grain ───────────────────────────────────── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.038;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+
+    /* ── Page ────────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ── Back link ───────────────────────────────── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-decoration: none;
+      margin-bottom: 3rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--ink); }
+
+    /* ── Header ──────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .eyebrow {
+      display: block;
+      font-size: 0.62rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+      color: var(--light);
+      text-shadow: 0 2px 40px rgba(180,80,200,0.18), 0 0 80px rgba(80,100,240,0.12);
+    }
+
+    h1 em { font-style: italic; font-weight: 300; }
+
+    /* ── Sections ────────────────────────────────── */
+    .sections {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .about-card {
+      background: var(--paper);
+      border-radius: 1px;
+      box-shadow:
+        0 2px 8px rgba(160,120,200,0.07),
+        0 8px 32px rgba(180,130,210,0.10),
+        0 24px 64px rgba(200,150,220,0.08);
+      padding: 2.75rem 3rem;
+      position: relative;
+    }
+
+    .about-card + .about-card {
+      margin-top: 1.5rem;
+    }
+
+    .about-card::before {
+      content: '';
+      position: absolute;
+      left: 2.4rem;
+      top: 1.5rem;
+      bottom: 1.5rem;
+      width: 1px;
+      background: var(--rule);
+      opacity: 0.4;
+    }
+
+    .section-inner {
+      padding-left: 1.5rem;
+    }
+
+    .section-label {
+      display: block;
+      font-size: 0.58rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0.75;
+      margin-bottom: 1.1rem;
+      font-weight: 400;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.85rem;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--ink);
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .section-body {
+      font-family: 'Lora', serif;
+      font-size: 1rem;
+      line-height: 1.85;
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    .section-body p + p {
+      margin-top: 1rem;
+    }
+
+    .section-body p.quiet {
+      font-style: italic;
+      color: var(--ink-soft);
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    /* ── Steps ───────────────────────────────────── */
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    .step {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      border: 1px solid rgba(75,94,232,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-top: 0.1rem;
+      flex-shrink: 0;
+    }
+
+    .step-content {}
+
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.12rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 0.22rem;
+    }
+
+    .step-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    /* ── Privacy badge ───────────────────────────── */
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      background: rgba(75,94,232,0.06);
+      border: 1px solid rgba(75,94,232,0.15);
+      padding: 0.55rem 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: rgba(75,94,232,0.85);
+    }
+
+    .privacy-badge svg { opacity: 0.7; flex-shrink: 0; }
+
+    /* ── Powered by ──────────────────────────────── */
+    .powered-by {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      color: rgba(22,18,52,0.35);
+      margin-top: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .powered-by a {
+      color: rgba(75,94,232,0.65);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(75,94,232,0.25);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .powered-by a:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── CTA ─────────────────────────────────────── */
+    .cta-wrap {
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.75rem 2rem;
+      border: none;
+      cursor: pointer;
+      background: var(--ink);
+      color: var(--paper);
+      text-decoration: none;
+      border-radius: 0;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #2D2B48; }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 520px) {
+      .about-card { padding: 2rem 1.5rem; }
+      .about-card::before { left: 1.25rem; }
+      .section-inner { padding-left: 0.75rem; }
+      h1 { font-size: 2.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="dot-canvas"></canvas>
+  <div class="grain"></div>
+
+  <div class="page">
+    <div class="container">
+
+      <a class="back-link" href="/">← Back to writing</a>
+
+      <header>
+        <span class="eyebrow">About this project</span>
+        <h1>Letters from<br><em>Your Future Self</em></h1>
+      </header>
+
+      <div class="sections">
+
+        <!-- ── What this is ─────────────────────── -->
+        <div class="about-card">
+          <div class="section-inner">
+            <span class="section-label">The idea</span>
+            <h2 class="section-title">What this is</h2>
+            <div class="section-body">
+              <p>Sometimes we carry things that feel too heavy to share with the people around us. Hopes that feel too fragile. Worries that don't yet have words. A confusion that we can't quite explain, even to ourselves.</p>
+              <p>Letters from Your Future Self gives you a quiet space to put those things down — and to receive a letter back from the version of you who made it through. Who remembers this exact moment. Who has the gift of perspective, not because life became perfect, but because they lived.</p>
+              <p class="quiet">It won't tell you what to do. It will simply remind you that you are more than this moment.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── How it works ─────────────────────── -->
+        <div class="about-card">
+          <div class="section-inner">
+            <span class="section-label">The process</span>
+            <h2 class="section-title">How it works</h2>
+            <ol class="steps">
+              <li class="step">
+                <span class="step-number">1</span>
+                <div class="step-content">
+                  <p class="step-title">Write what's on your mind</p>
+                  <p class="step-desc">Open the page and write honestly — in any language, in any order. About a worry, a hope, something heavy, or something you've never said out loud. There's no wrong way to do this.</p>
+                </div>
+              </li>
+              <li class="step">
+                <span class="step-number">2</span>
+                <div class="step-content">
+                  <p class="step-title">Your future self writes back</p>
+                  <p class="step-desc">An AI reads what you shared and writes a warm, personal letter as your future self — ten years from now. Someone who remembers this moment, who knows how it felt, and who has lived through it.</p>
+                </div>
+              </li>
+              <li class="step">
+                <span class="step-number">3</span>
+                <div class="step-content">
+                  <p class="step-title">Read your letter</p>
+                  <p class="step-desc">Your letter arrives line by line, unhurried. Like receiving something in the post. Something written just for you.</p>
+                </div>
+              </li>
+              <li class="step">
+                <span class="step-number">4</span>
+                <div class="step-content">
+                  <p class="step-title">Keep it</p>
+                  <p class="step-desc">Save your letter as a beautifully formatted PDF to return to whenever you need it. Or simply close the page, carrying whatever felt true.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- ── Privacy ──────────────────────────── -->
+        <div class="about-card">
+          <div class="section-inner">
+            <span class="section-label">Your privacy</span>
+            <h2 class="section-title">Your words are yours</h2>
+            <div class="section-body">
+              <p>We don't store what you write. We don't log your letter. Nothing is saved to a database, and no person ever reads your words. The moment your letter is generated, the connection closes.</p>
+              <p>What you write stays between you and your future self — the way it should be.</p>
+            </div>
+            <div class="privacy-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              No data stored · No account required · Letters never saved
+            </div>
+            <p class="powered-by">Letters are generated using <a href="https://www.anthropic.com" target="_blank" rel="noopener">Claude by Anthropic</a>, and are subject to Anthropic's standard usage policies. Your message is sent to Claude's API to generate the letter, then discarded.</p>
+          </div>
+        </div>
+
+        <!-- ── Why we made this ─────────────────── -->
+        <div class="about-card">
+          <div class="section-inner">
+            <span class="section-label">The story</span>
+            <h2 class="section-title">Why this exists</h2>
+            <div class="section-body">
+              <p>This project was built out of a simple belief: that perspective is one of the most healing things a person can receive, and yet it's the hardest to access when you're in the middle of something difficult.</p>
+              <p>We spend a lot of time asking others for advice. But sometimes what we actually need isn't advice — it's to hear from the part of ourselves that already knows we'll be okay. The future self who made it through.</p>
+              <p class="quiet">This is for you — wherever you are in the story.</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.sections -->
+
+      <div class="cta-wrap">
+        <a class="btn-primary" href="/">Write your letter &rarr;</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ── Simplified canvas (colour zones + stipple dots) ──
+
+    const canvas = document.getElementById('dot-canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, dots = [], time = 0, hueShift = 0;
+
+    const ZONE_DEFS = [
+      { h:260, s:55, l:72, x:0.18, y:0.22, r:0.38, spd:0.0012, phase:0      },
+      { h:300, s:52, l:74, x:0.78, y:0.18, r:0.32, spd:0.0009, phase:2.1    },
+      { h:220, s:48, l:76, x:0.55, y:0.68, r:0.42, spd:0.0011, phase:4.2    },
+      { h:340, s:44, l:78, x:0.25, y:0.72, r:0.30, spd:0.0013, phase:1.1    },
+      { h:200, s:50, l:80, x:0.82, y:0.55, r:0.28, spd:0.0008, phase:3.3    },
+    ];
+
+    function resizeCanvas() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      makeDots();
+    }
+
+    function makeDots() {
+      dots = [];
+      const n = Math.floor((W * H) / 4200);
+      for (let i = 0; i < n; i++) {
+        dots.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: 0.6 + Math.random() * 1.2,
+          speed: 0.04 + Math.random() * 0.08,
+          angle: Math.random() * Math.PI * 2,
+          turn:  (Math.random() - 0.5) * 0.018,
+        });
+      }
+    }
+
+    function drawColorZones() {
+      ZONE_DEFS.forEach(z => {
+        const orbit = time * z.spd + z.phase;
+        const ox = Math.cos(orbit) * W * 0.09;
+        const oy = Math.sin(orbit * 0.75) * H * 0.07;
+        const cx = z.x * W + ox;
+        const cy = z.y * H + oy;
+        const h  = (z.h + hueShift * 0.45) % 360;
+        const g  = ctx.createRadialGradient(cx, cy, 0, cx, cy, z.r * Math.max(W, H));
+        g.addColorStop(0,   `hsla(${h},${z.s}%,${z.l}%,0.115)`);
+        g.addColorStop(0.5, `hsla(${h},${z.s - 6}%,${z.l + 4}%,0.04)`);
+        g.addColorStop(1,   `hsla(${h},${z.s}%,${z.l}%,0)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      });
+    }
+
+    function drawDots() {
+      dots.forEach(d => {
+        d.angle += d.turn;
+        d.x += Math.cos(d.angle) * d.speed;
+        d.y += Math.sin(d.angle) * d.speed;
+        if (d.x < -10) d.x = W + 10;
+        if (d.x > W + 10) d.x = -10;
+        if (d.y < -10) d.y = H + 10;
+        if (d.y > H + 10) d.y = -10;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(22,18,52,0.18)`;
+        ctx.fill();
+      });
+    }
+
+    function animate() {
+      time++;
+      hueShift = (hueShift + 0.38) % 36000;
+      ctx.clearRect(0, 0, W, H);
+      drawColorZones();
+      drawDots();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+
+</body>
+</html>

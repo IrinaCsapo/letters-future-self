@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Letters from Your Future Self</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -421,15 +421,15 @@
     }
 
     .letter-body {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.18rem;
-      line-height: 1.95;
+      font-family: 'Lora', serif;
+      font-size: 1.08rem;
+      line-height: 1.82;
       color: var(--ink);
       font-weight: 400;
     }
 
     .letter-body p {
-      margin-bottom: 1.6rem;
+      margin-bottom: 0.85rem;
       opacity: 0;
       transform: translateY(6px);
       transition: opacity 0.7s ease, transform 0.7s ease;
@@ -440,8 +440,8 @@
       font-style: italic;
       color: var(--ink-soft);
       border-top: 1px solid var(--rule);
-      padding-top: 1.75rem;
-      margin-top: 0.5rem;
+      padding-top: 1.25rem;
+      margin-top: 0.4rem;
       margin-bottom: 0;
     }
 
@@ -452,7 +452,7 @@
       transition: opacity 0.7s ease, transform 0.7s ease;
     }
     .letter-signature.revealed { opacity: 1; transform: translateY(0); }
-    .letter-signature p { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1rem; color: var(--ink-soft); line-height: 1.7; }
+    .letter-signature p { font-family: 'Lora', serif; font-style: italic; font-size: 0.95rem; color: var(--ink-soft); line-height: 1.7; }
     .letter-signature .sig-name { font-weight: 500; color: var(--ink); }
 
     .letter-actions {

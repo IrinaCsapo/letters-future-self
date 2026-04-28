@@ -1757,23 +1757,14 @@ function saveAsPDF() {
 }
 
 
-// ── Share link — short server-side ID ────────────────
+// ── Share link — promotional text + homepage ─────────
 
 async function copyShareLink() {
   try {
-    const res  = await fetch('/save', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ paragraphs: currentParagraphs }),
-    });
-    const data = await res.json();
-    if (!data.id) throw new Error('No ID returned');
-
-    const url = `${window.location.origin}/?l=${data.id}`;
-    navigator.clipboard.writeText(url).then(() => {
-      copyConfirm.classList.add('show');
-      setTimeout(() => copyConfirm.classList.remove('show'), 2500);
-    });
+    const text = `${T('pdf_footer')}\n${T('subtitle')}\n\n${window.location.origin}`;
+    await navigator.clipboard.writeText(text);
+    copyConfirm.classList.add('show');
+    setTimeout(() => copyConfirm.classList.remove('show'), 2500);
   } catch (err) {
     console.error('Share failed:', err);
   }

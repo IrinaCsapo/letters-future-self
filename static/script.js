@@ -937,6 +937,10 @@ let sunAngle    = 0;
 let sunAlpha    = 0;
 let sunHue      = 0;
 
+// Cherry petals — loading state only
+let petals      = [];
+let petalAlpha  = 0;
+
 function resizeCanvas() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
@@ -1045,22 +1049,28 @@ const ZONE_DEFS = [
 ];
 
 function drawColorZones() {
-  const base = dotMode === 'letter' ? 0.062 : 0.115;
+  const isLoad = dotMode === 'loading';
+  const base   = dotMode === 'letter' ? 0.062 : isLoad ? 0.20 : 0.115;
+  const spdMul = isLoad ? 5.5 : 1;
+  const orbitX = isLoad ? 0.22 : 0.10;
+  const orbitY = isLoad ? 0.17 : 0.08;
 
   ZONE_DEFS.forEach(z => {
-    // Orbital drift — each zone moves in a gentle ellipse
-    const orbit = time * z.spd + z.phase;
-    const ox = Math.cos(orbit)        * W * 0.10;
-    const oy = Math.sin(orbit * 0.75) * H * 0.08;
+    const orbit = time * z.spd * spdMul + z.phase;
+    const ox = Math.cos(orbit)        * W * orbitX;
+    const oy = Math.sin(orbit * 0.75) * H * orbitY;
     const zx = W * z.bx + ox;
     const zy = H * z.by + oy;
-    const zr = W * z.r;
+    const zr = W * z.r * (isLoad ? 1.25 : 1);
 
-    const h = (z.h + hueShift * 0.45) % 360;
+    const s = isLoad ? Math.min(z.s + 18, 100) : z.s;
+    const l = isLoad ? Math.max(z.l - 6,  42)  : z.l;
+    const h = (z.h + hueShift * (isLoad ? 1.1 : 0.45)) % 360;
+
     const g = ctx.createRadialGradient(zx, zy, 0, zx, zy, zr);
-    g.addColorStop(0,    `hsla(${h},${z.s}%,${z.l}%,${base * z.a * 2.2})`);
-    g.addColorStop(0.42, `hsla(${h},${z.s}%,${z.l}%,${base * z.a})`);
-    g.addColorStop(1,    `hsla(${h},${z.s}%,${z.l}%,0)`);
+    g.addColorStop(0,    `hsla(${h},${s}%,${l}%,${base * z.a * 2.2})`);
+    g.addColorStop(0.42, `hsla(${h},${s}%,${l}%,${base * z.a})`);
+    g.addColorStop(1,    `hsla(${h},${s}%,${l}%,0)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   });
@@ -1088,7 +1098,8 @@ function drawTwirls(alpha) {
   if (alpha <= 0) return;
   twirls.forEach(t => {
     const hue   = (t.hue + hueShift * 0.12) % 360;
-    const angle = time * t.speed + t.phase;
+    const tSpd  = dotMode === 'loading' ? 4.2 : 1;
+    const angle = time * t.speed * tSpd + t.phase;
     const turns = 4;
     const pts   = 260;
 
@@ -1253,8 +1264,9 @@ function drawSun() {
   const cx = W / 2;
   const cy = H / 2;
 
-  sunHue   = (sunHue + 0.9) % 360;
-  sunAngle += 0.012;
+  const isLoad = dotMode === 'loading';
+  sunHue   = (sunHue + (isLoad ? 3.2 : 0.9)) % 360;
+  sunAngle += isLoad ? 0.048 : 0.012;
 
   const rays = 18;
 
@@ -1317,11 +1329,100 @@ function drawSun() {
 }
 
 
+// ── Cherry petals (loading state) ─────────────────────
+
+function makePetal() {
+  const fromLeft = Math.random() > 0.42;
+  const hue      = Math.random() > 0.35
+    ? 335 + Math.random() * 28   // pink / rose
+    : 355 + Math.random() * 18;  // white-pink
+  const speed    = 2.8 + Math.random() * 4.5;
+  return {
+    x:         fromLeft ? -18 : W + 18,
+    y:         Math.random() * H * 1.1 - H * 0.05,
+    vx:        fromLeft ? speed : -speed,
+    vy:        (Math.random() - 0.35) * 1.6,
+    flutter:   Math.random() * Math.PI * 2,
+    flutterS:  0.038 + Math.random() * 0.055,
+    flutterA:  0.9   + Math.random() * 1.8,
+    rot:       Math.random() * Math.PI * 2,
+    rotS:      (Math.random() - 0.5) * 0.14,
+    size:      3.5   + Math.random() * 5,
+    hue,
+    alpha:     0.45  + Math.random() * 0.45,
+    fade:      0,
+  };
+}
+
+function updatePetals() {
+  // Fade system in/out
+  const target = dotMode === 'loading' ? 1 : 0;
+  petalAlpha  += (target - petalAlpha) * 0.045;
+
+  // Spawn while loading
+  if (dotMode === 'loading' && petals.length < 90 && Math.random() < 0.42) {
+    petals.push(makePetal());
+  }
+
+  petals = petals.filter(p => {
+    p.fade   = Math.min(p.fade + 0.06, 1);
+    p.x     += p.vx;
+    p.y     += p.vy + Math.sin(p.flutter) * p.flutterA;
+    p.flutter += p.flutterS;
+    p.rot   += p.rotS;
+    return p.x > -40 && p.x < W + 40 && p.y > -60 && p.y < H + 60;
+  });
+}
+
+function drawPetals() {
+  if (petalAlpha < 0.01) return;
+  petals.forEach(p => {
+    const a = p.alpha * p.fade * petalAlpha;
+    if (a < 0.01) return;
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+
+    // Teardrop / blossom petal shape
+    ctx.beginPath();
+    ctx.moveTo(0, -p.size);
+    ctx.bezierCurveTo(
+       p.size * 0.68, -p.size * 0.42,
+       p.size * 0.68,  p.size * 0.42,
+       0,              p.size
+    );
+    ctx.bezierCurveTo(
+      -p.size * 0.68,  p.size * 0.42,
+      -p.size * 0.68, -p.size * 0.42,
+       0,             -p.size
+    );
+
+    const g = ctx.createRadialGradient(0, -p.size * 0.18, 0, 0, p.size * 0.22, p.size * 1.15);
+    g.addColorStop(0,    `hsla(${p.hue},  80%, 98%, ${a})`);
+    g.addColorStop(0.5,  `hsla(${p.hue},  78%, 90%, ${a * 0.82})`);
+    g.addColorStop(1,    `hsla(${p.hue + 18}, 62%, 76%, ${a * 0.22})`);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    // Delicate centre vein line
+    ctx.beginPath();
+    ctx.moveTo(0, -p.size * 0.8);
+    ctx.lineTo(0,  p.size * 0.8);
+    ctx.strokeStyle = `hsla(${p.hue + 10}, 55%, 82%, ${a * 0.3})`;
+    ctx.lineWidth   = 0.4;
+    ctx.stroke();
+
+    ctx.restore();
+  });
+}
+
 // ── Main animation loop ───────────────────────────────
 
 function animate() {
   time++;
-  hueShift = (hueShift + 0.38) % 36000; // wrap at integer multiple of 360 → seamless
+  // Hue shift accelerates during loading for a time-travel feel
+  hueShift = (hueShift + (dotMode === 'loading' ? 1.9 : 0.38)) % 36000;
 
   ctx.clearRect(0, 0, W, H);
 
@@ -1336,12 +1437,18 @@ function animate() {
     sunAlpha     = Math.max(0, sunAlpha - 0.04);
   }
 
-  // Twirls fade out during loading, always visible otherwise
-  const twirlAlpha = dotMode === 'loading' ? Math.max(0, 1 - sunAlpha * 2) : flowerGrowth;
+  // Twirls: spin faster during loading, always visible
+  const twirlAlpha = dotMode === 'loading'
+    ? Math.min(1, sunAlpha * 1.8)  // fade in with sun
+    : flowerGrowth;
   drawTwirls(twirlAlpha);
 
   flowers.forEach(f => drawFlower(f, flowerGrowth));
   drawSun();
+
+  // Cherry petals blow through during loading
+  updatePetals();
+  drawPetals();
 
   dots.forEach(d => { updateDot(d); drawDot(d); });
 

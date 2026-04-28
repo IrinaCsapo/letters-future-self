@@ -1484,8 +1484,7 @@ function setLanguage(lang) {
   document.documentElement.lang = lang;
 
   // Header
-  document.getElementById('i18n-eyebrow').textContent = T('eyebrow');
-  document.getElementById('i18n-h1').innerHTML         = T('h1');
+  document.getElementById('i18n-h1').innerHTML = T('h1');
 
   // Subtitle with inline language trigger
   const subtitleEl = document.getElementById('i18n-subtitle');

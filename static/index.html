@@ -72,7 +72,10 @@
       margin-bottom: 1.25rem;
       font-weight: 400;
       opacity: 0.8;
+      text-decoration: none;
+      transition: opacity 0.2s;
     }
+    a.eyebrow:hover { opacity: 1; }
 
     h1 {
       font-family: 'Cormorant Garamond', serif;
@@ -655,7 +658,7 @@
   <div id="write-screen" class="screen active">
     <div class="container">
       <header>
-        <span class="eyebrow" id="i18n-eyebrow">A letter through time</span>
+        <a class="eyebrow" href="/about">About this project</a>
         <h1 id="i18n-h1">Letters from<br><em>Your Future Self</em></h1>
         <div class="subtitle-wrap" id="subtitle-wrap">
           <p class="subtitle" id="i18n-subtitle">Write honestly. Write in <button class="lang-inline-trigger" id="lang-pill" onclick="toggleLangPicker()" aria-haspopup="true" aria-expanded="false">English<span class="lang-chevron-inline">↓</span></button>, your future self will reply in kind.</p>
@@ -725,7 +728,6 @@
         </div>
       </div>
 
-      <p class="page-footer-link"><a href="/about">About this project</a></p>
 
     </div>
   </div>

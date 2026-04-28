@@ -12,7 +12,7 @@ const TRANSLATIONS = {
   en: {
     eyebrow:'A letter through time',
     h1:'Letters from<br><em>Your Future Self</em>',
-    subtitle:'Write honestly. Your future self will write back.',
+    subtitle:'Write honestly. Write in any language, your future self will reply in kind.',
     prompt_label:"What's been weighing on you lately?",
     placeholder:"Start writing… there's no wrong way to do this.",
     note_language:'Write in any language — your future self will reply in kind.',
@@ -1374,8 +1374,7 @@ function setLanguage(lang) {
   // Write card
   document.getElementById('i18n-prompt-label').textContent = T('prompt_label');
   document.getElementById('user-message').placeholder      = T('placeholder');
-  document.getElementById('i18n-card-note').innerHTML      =
-    T('note_language') + '<br>' + T('note_private');
+  document.getElementById('i18n-card-note').textContent = T('note_private');
   document.getElementById('send-btn').innerHTML            = T('send') + ' &rarr;';
 
   // Writing prompts

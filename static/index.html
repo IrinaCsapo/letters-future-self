@@ -240,15 +240,33 @@
       opacity: 0.4;
     }
 
+    .paper-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+    }
+
     .prompt-label {
       display: block;
       font-family: 'Cormorant Garamond', serif;
-      font-size: 1.1rem;
+      font-size: 1.38rem;
       font-style: italic;
       color: var(--ink-soft);
-      margin-bottom: 1.25rem;
       padding-left: 1.5rem;
       font-weight: 400;
+      margin-bottom: 0;
+    }
+
+    .date-stamp {
+      font-size: 0.65rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.5;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     textarea {
@@ -257,7 +275,7 @@
       background: transparent;
       resize: none;
       font-family: 'Cormorant Garamond', serif;
-      font-size: 1.1rem;
+      font-size: 1.38rem;
       line-height: 1.85;
       color: var(--ink);
       outline: none;
@@ -266,16 +284,15 @@
       min-height: 200px;
     }
 
-    textarea::placeholder { color: var(--rule); font-style: italic; }
+    textarea::placeholder { color: rgba(26,25,40,0.32); font-style: italic; }
 
     .card-note {
-      font-size: 0.68rem;
-      color: var(--ink-soft);
-      letter-spacing: 0.03em;
-      line-height: 1.65;
-      padding-left: 1.5rem;
-      margin-top: 0.75rem;
-      opacity: 0.55;
+      font-size: 0.74rem;
+      color: rgba(22,18,52,0.58);
+      letter-spacing: 0.02em;
+      line-height: 1.55;
+      font-weight: 300;
+      max-width: 72%;
     }
 
     .paper-footer {
@@ -285,14 +302,7 @@
       margin-top: 2rem;
       padding-top: 1.25rem;
       border-top: 1px solid var(--rule);
-    }
-
-    .date-stamp {
-      font-size: 0.68rem;
-      color: var(--ink-soft);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      opacity: 0.45;
+      gap: 1rem;
     }
 
     /* ── Buttons ─────────────────────────────────── */
@@ -487,6 +497,9 @@
       .paper, .letter-paper { padding: 2rem 1.5rem; }
       .paper::before { left: 1.25rem; }
       .prompt-label, textarea { padding-left: 0.75rem; }
+      .paper-header { flex-direction: column; gap: 0.4rem; }
+      .paper-footer { flex-wrap: wrap; gap: 0.75rem; }
+      .card-note { max-width: 100%; }
       .letter-actions { flex-direction: column; align-items: center; }
       .lang-select { top: 0.75rem; right: 0.75rem; }
     }
@@ -532,15 +545,17 @@
       <header>
         <span class="eyebrow" id="i18n-eyebrow">A letter through time</span>
         <h1 id="i18n-h1">Letters from<br><em>Your Future Self</em></h1>
-        <p class="subtitle" id="i18n-subtitle">Write honestly. Your future self will write back.</p>
+        <p class="subtitle" id="i18n-subtitle">Write honestly. Write in any language, your future self will reply in kind.</p>
       </header>
 
       <div class="paper">
-        <label class="prompt-label" id="i18n-prompt-label">What's been weighing on you lately?</label>
-        <textarea id="user-message" placeholder="Start writing… there's no wrong way to do this." rows="10" autofocus></textarea>
-        <p class="card-note" id="i18n-card-note">Write in any language — your future self will reply in kind.<br>Your letters are private. We never store or read your words.</p>
-        <div class="paper-footer">
+        <div class="paper-header">
+          <label class="prompt-label" id="i18n-prompt-label">What's been weighing on you lately?</label>
           <span class="date-stamp" id="today-date"></span>
+        </div>
+        <textarea id="user-message" placeholder="Start writing… there's no wrong way to do this." rows="10" autofocus></textarea>
+        <div class="paper-footer">
+          <p class="card-note" id="i18n-card-note">Your letters are private. We never store or read your words.</p>
           <button class="btn btn-primary" id="send-btn">Send &rarr;</button>
         </div>
       </div>

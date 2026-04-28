@@ -1376,7 +1376,6 @@ function setLanguage(lang) {
   document.getElementById('user-message').placeholder      = T('placeholder');
   document.getElementById('i18n-card-note').innerHTML      =
     T('note_language') + '<br>' + T('note_private');
-  document.getElementById('i18n-hint').textContent         = T('hint');
   document.getElementById('send-btn').innerHTML            = T('send') + ' &rarr;';
 
   // Writing prompts

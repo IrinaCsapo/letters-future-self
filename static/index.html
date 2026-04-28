@@ -179,20 +179,59 @@
     }
     .prompts-list li span.emoji { font-style: normal; flex-shrink: 0; }
 
-    /* ── Page footer link ────────────────────────── */
-    .page-footer-link {
+    /* ── Site footer ─────────────────────────────── */
+    .site-footer {
+      position: relative;
+      z-index: 1;
       text-align: center;
-      margin-top: 2rem;
+      padding: 0 1.5rem 3rem;
     }
-    .page-footer-link a {
+
+    .site-footer-rule {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto 1.75rem;
+      height: 1px;
+      background: rgba(26,25,40,0.08);
+    }
+
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.25rem 1.5rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .footer-nav a {
+      font-family: 'Inter', sans-serif;
       font-size: 0.62rem;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: rgba(22,18,52,0.32);
       text-decoration: none;
       transition: color 0.2s;
     }
-    .page-footer-link a:hover { color: rgba(22,18,52,0.65); }
+    .footer-nav a:hover { color: rgba(22,18,52,0.65); }
+
+    .footer-made {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.88rem;
+      font-style: italic;
+      color: rgba(22,18,52,0.30);
+      letter-spacing: 0.01em;
+    }
+
+    .footer-made a {
+      color: rgba(22,18,52,0.45);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(26,25,40,0.18);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .footer-made a:hover {
+      color: rgba(22,18,52,0.75);
+      border-color: rgba(26,25,40,0.4);
+    }
 
     /* ── Grain overlay ───────────────────────────── */
     .grain {
@@ -785,6 +824,18 @@
 
     </div>
   </div>
+
+  <!-- ── Site footer ───────────────────────────── -->
+  <footer class="site-footer">
+    <div class="site-footer-rule"></div>
+    <nav class="footer-nav" aria-label="Site links">
+      <a href="/about#idea">What this is</a>
+      <a href="/about#how-it-works">How it works</a>
+      <a href="/about#privacy">Privacy</a>
+      <a href="/about#story">Our story</a>
+    </nav>
+    <p class="footer-made">Made with love by <a href="https://www.irinacsapo.co.uk" target="_blank" rel="noopener">Irina Csapo</a></p>
+  </footer>
 
   <script src="/static/script.js"></script>
 </body>

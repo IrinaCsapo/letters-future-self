@@ -1606,7 +1606,8 @@ const againBtn      = document.getElementById('again-btn');
 const copyConfirm   = document.getElementById('copy-confirm');
 const sharedBanner  = document.getElementById('shared-banner');
 
-let currentParagraphs = [];
+let currentParagraphs  = [];
+let currentUserMessage = '';
 
 
 // ── Screen switching ──────────────────────────────────
@@ -1634,6 +1635,7 @@ async function generateLetter() {
   const message = userMessage.value.trim();
   if (!message) return;
 
+  currentUserMessage = message;
   sendBtn.disabled = true;
   showScreen('loading-screen');
 
@@ -1703,30 +1705,30 @@ function renderLetter(paragraphs, isShared) {
 // ── PDF generation ────────────────────────────────────
 
 function extractQuotes(paragraphs) {
-  // Collect all sentences, prefer ones that read as standalone truths
+  // Collect complete sentences only — never truncate mid-sentence
   const sentences = [];
   paragraphs.forEach(p => {
-    const parts = p.match(/[^.!?]+[.!?]+/g) || [p];
+    const parts = p.match(/[^.!?]+[.!?]+/g) || [];
     parts.forEach(s => sentences.push(s.trim()));
   });
 
-  // Score: prefer 50–180 chars, penalise sentences starting with "I " or "You "
+  // Score: prefer 50–200 chars (sweet spot for a quote page)
+  // Heavily penalise very long sentences so they're a last resort
   const scored = sentences
-    .filter(s => s.length >= 45)
+    .filter(s => s.length >= 45 && s.length <= 280)
     .map(s => {
-      let score = Math.min(s.length, 160);
-      if (/^(I |You )/i.test(s)) score -= 25;
+      let score = s.length <= 160 ? s.length : 160 - (s.length - 160) * 0.8;
+      if (/^(I |You )/i.test(s)) score -= 20;
       if (/\b(always|never|every|still|already|somehow|quietly|slowly)\b/i.test(s)) score += 20;
       return { s, score };
     })
     .sort((a, b) => b.score - a.score);
 
-  // Return top 2 unique quotes, capped at 170 chars each
+  // Return top 1 complete sentence — no truncation, ever
   const picks = [];
   for (const { s } of scored) {
-    const capped = s.length > 170 ? s.slice(0, 167) + '…' : s;
-    if (!picks.includes(capped)) picks.push(capped);
-    if (picks.length === 2) break;
+    if (!picks.includes(s)) picks.push(s);
+    if (picks.length === 1) break;
   }
   return picks;
 }
@@ -1814,13 +1816,15 @@ function addQuotePage(doc, quote) {
   drawPDFSpiral(doc, pw - 40, 44,   20, 2.2,  240, 155, 178);
 
   // ── Quote text ─────────────────────────────────────────
-  const margin = 22;
+  // Adaptive font — complete sentence always shown
+  const margin   = 22;
+  const fontSize = quote.length < 110 ? 30 : quote.length < 180 ? 26 : 22;
+  const lineH    = quote.length < 110 ? 13 : quote.length < 180 ? 12 : 10.5;
   doc.setFont('times', 'italic');
-  doc.setFontSize(29);
+  doc.setFontSize(fontSize);
   doc.setTextColor(40, 34, 65);
 
   const lines  = doc.splitTextToSize(`\u201C${quote}\u201D`, pw - margin * 2);
-  const lineH  = 13;
   const blockH = lines.length * lineH;
   let y = (ph - blockH) / 2 + 4;
 
@@ -1845,24 +1849,94 @@ function addQuotePage(doc, quote) {
   doc.text(formatDate(today), pw / 2, ph - 10, { align: 'center' });
 }
 
+function addUserMessagePage(doc, message) {
+  doc.addPage();
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+
+  // Same lavender background
+  doc.setFillColor(245, 241, 250);
+  doc.rect(0, 0, pw, ph, 'F');
+  drawPDFBlob(doc,   0,   0,  65, 210, 175, 230);
+  drawPDFBlob(doc,  pw,   0,  55, 240, 185, 220);
+  drawPDFBlob(doc,   0,  ph,  60, 175, 145, 220);
+  drawPDFBlob(doc,  pw,  ph,  58, 225, 170, 235);
+
+  const margin = 28;
+  let y = 28;
+
+  // Header
+  doc.setDrawColor(185, 175, 205);
+  doc.setLineWidth(0.28);
+  doc.line(margin, y, pw - margin, y);
+  y += 6;
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(150, 138, 175);
+  const label = currentLang === 'en' ? 'WHAT YOU WROTE' : 'YOUR WORDS';
+  doc.text(label, pw / 2, y, { align: 'center' });
+  y += 4;
+
+  doc.line(margin, y, pw - margin, y);
+  y += 10;
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(160, 148, 185);
+  doc.text(formatDate(today), margin, y);
+  y += 12;
+
+  // User message body
+  doc.setFont('times', 'italic');
+  doc.setFontSize(11.5);
+  doc.setTextColor(45, 40, 70);
+
+  const paras = message.split(/
++/).filter(p => p.trim());
+  paras.forEach(para => {
+    const lines = doc.splitTextToSize(para.trim(), pw - margin * 2);
+    if (y + lines.length * 6 > ph - 24) { doc.addPage(); y = 28; }
+    doc.text(lines, margin, y);
+    y += lines.length * 6 + 2;
+  });
+
+  // Footer
+  doc.setFont('times', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(155, 140, 178);
+  doc.text(T('pdf_footer'), pw / 2, ph - 12, { align: 'center' });
+}
+
 function saveAsPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
+  const pw           = doc.internal.pageSize.getWidth();
+  const ph           = doc.internal.pageSize.getHeight();
   const margin       = 28;
-  const pageWidth    = doc.internal.pageSize.getWidth();
+  const pageWidth    = pw;
   const contentWidth = pageWidth - margin * 2;
+
+  // ── Letter page: lavender background + soft blobs ────
+  doc.setFillColor(245, 241, 250);
+  doc.rect(0, 0, pw, ph, 'F');
+  drawPDFBlob(doc,   0,   0,  70, 195, 165, 225);
+  drawPDFBlob(doc,  pw,   0,  60, 230, 175, 215);
+  drawPDFBlob(doc,   0,  ph,  65, 165, 135, 215);
+  drawPDFBlob(doc,  pw,  ph,  62, 215, 160, 230);
+
   let y = 22;
 
   // Header rule
-  doc.setDrawColor(200, 195, 188);
+  doc.setDrawColor(185, 175, 205);
+  doc.setLineWidth(0.28);
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
 
   // Title
   doc.setFont('times', 'normal');
   doc.setFontSize(8.5);
-  doc.setTextColor(140, 130, 120);
+  doc.setTextColor(145, 132, 168);
   doc.text(T('pdf_title'), pageWidth / 2, y, { align: 'center' });
   y += 4;
 
@@ -1871,7 +1945,7 @@ function saveAsPDF() {
 
   // Dates
   doc.setFontSize(8);
-  doc.setTextColor(160, 150, 140);
+  doc.setTextColor(155, 142, 172);
   doc.text(`${T('pdf_written')} ${formatDate(today)}`, margin, y);
   doc.text(`${T('pdf_from')} ${formatDate(futureDate)}`, pageWidth - margin, y, { align: 'right' });
   y += 14;
@@ -1885,35 +1959,48 @@ function saveAsPDF() {
     const isLast = i === currentParagraphs.length - 1;
 
     if (isLast) {
-      y += 6;
-      doc.setDrawColor(210, 205, 198);
-      doc.line(margin, y - 3, pageWidth - margin, y - 3);
+      y += 3;
+      doc.setDrawColor(190, 175, 215);
+      doc.setGState(doc.GState({ opacity: 0.5 }));
+      doc.line(margin, y - 2, pageWidth - margin, y - 2);
+      doc.setGState(doc.GState({ opacity: 1 }));
       doc.setFont('times', 'italic');
-      doc.setTextColor(100, 96, 120);
+      doc.setTextColor(100, 92, 128);
     }
 
     const lines = doc.splitTextToSize(para.trim(), contentWidth);
 
-    if (y + lines.length * 6 > 275) {
+    if (y + lines.length * 6 > ph - 22) {
       doc.addPage();
+      doc.setFillColor(245, 241, 250);
+      doc.rect(0, 0, pw, ph, 'F');
       y = 22;
     }
 
     doc.text(lines, margin, y);
-    y += lines.length * 6 + 3;
+    y += lines.length * 6 + 2;
   });
 
   // Signature
-  y += 8;
+  y += 7;
   doc.setFont('times', 'italic');
   doc.setFontSize(11);
-  doc.setTextColor(110, 104, 128);
+  doc.setTextColor(115, 105, 138);
   doc.text(T('with_love'), margin, y);
   doc.setFont('times', 'bolditalic');
-  doc.setTextColor(30, 28, 45);
-  doc.text(T('sig_name').replace('{year}', futureDate.getFullYear()), margin, y + 8);
+  doc.setTextColor(35, 30, 55);
+  doc.text(T('sig_name').replace('{year}', futureDate.getFullYear()), margin, y + 7);
 
-  // ── Quote pages ─────────────────────────────────────
+  // Footer
+  doc.setFont('times', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(155, 140, 178);
+  doc.text(T('pdf_footer'), pw / 2, ph - 12, { align: 'center' });
+
+  // ── User's original message ──────────────────────────
+  if (currentUserMessage) addUserMessagePage(doc, currentUserMessage);
+
+  // ── Quote page (1 only, complete sentence) ───────────
   const quotes = extractQuotes(currentParagraphs);
   quotes.forEach(q => addQuotePage(doc, q));
 
@@ -1974,6 +2061,7 @@ function reset() {
   userMessage.value        = '';
   userMessage.style.height = 'auto';
   currentParagraphs        = [];
+  currentUserMessage       = '';
   sendBtn.disabled         = false;
   window.location.hash     = '';
   showScreen('write-screen');

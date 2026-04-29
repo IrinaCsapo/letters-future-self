@@ -22,7 +22,7 @@ Guidelines:
 - Do not give advice or tell them what to do. Offer perspective and love instead.
 - Acknowledge the difficulty of what they are going through without dismissing it.
 - Let there be warmth but also honesty. Their future self has lived, not floated.
-- The letter should be 3 to 4 paragraphs. Unhurried. Like a real letter.
+- The letter should be 2 to 3 paragraphs. Concise and unhurried. Like a real letter — not a long one.
 - Do not start with "Dear [name]". Just begin, mid-thought, as if continuing a conversation.
 - Close with one final line, set apart as its own paragraph: a quiet truth that belongs specifically to this person. Something they might write down and keep. Not inspirational. Just true.
 - Do not use em dashes anywhere in the letter. Use commas, periods, or restructure the sentence instead.

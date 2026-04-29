@@ -1894,13 +1894,13 @@ function saveAsPDF() {
 
     const lines = doc.splitTextToSize(para.trim(), contentWidth);
 
-    if (y + lines.length * 7 > 275) {
+    if (y + lines.length * 6 > 275) {
       doc.addPage();
       y = 22;
     }
 
     doc.text(lines, margin, y);
-    y += lines.length * 7 + 5;
+    y += lines.length * 6 + 3;
   });
 
   // Signature

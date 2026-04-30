@@ -1891,8 +1891,7 @@ function addUserMessagePage(doc, message) {
   doc.setFontSize(11.5);
   doc.setTextColor(45, 40, 70);
 
-  const paras = message.split(/
-+/).filter(p => p.trim());
+  const paras = message.split(/\n+/).filter(p => p.trim());
   paras.forEach(para => {
     const lines = doc.splitTextToSize(para.trim(), pw - margin * 2);
     if (y + lines.length * 6 > ph - 24) { doc.addPage(); y = 28; }

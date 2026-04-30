@@ -1833,12 +1833,12 @@ function addQuotePage(doc, quote) {
     y += lineH;
   });
 
-  // Thin decorative rule below quote
-  y += 9;
+  // Thin decorative rule — fixed position above footer, never overlaps quote
+  const ruleY = ph - 26;
   doc.setDrawColor(175, 148, 215);
   doc.setLineWidth(0.28);
   doc.setGState(doc.GState({ opacity: 0.45 }));
-  doc.line(margin + 28, y, pw - margin - 28, y);
+  doc.line(margin + 28, ruleY, pw - margin - 28, ruleY);
   doc.setGState(doc.GState({ opacity: 1 }));
 
   // ── Branding footer ────────────────────────────────────

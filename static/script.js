@@ -18,6 +18,31 @@ const LANG_NAMES = {
   sl:'Slovenščina',
 };
 
+// ── PDF font cache — preloaded at startup ─────────────
+// jsPDF built-in fonts only cover Latin-1, which garbles Romanian,
+// Polish, Czech, Greek etc. We fetch Lora TTF from jsDelivr and embed
+// it via addFileToVFS so every language renders correctly.
+const PDF_FONTS = { regular: null, italic: null, bolditalic: null };
+
+(async function preloadPDFFonts() {
+  const CDN = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lora/static/';
+  const files = [
+    { key: 'regular',    file: 'Lora-Regular.ttf'    },
+    { key: 'italic',     file: 'Lora-Italic.ttf'     },
+    { key: 'bolditalic', file: 'Lora-BoldItalic.ttf' },
+  ];
+  await Promise.all(files.map(async ({ key, file }) => {
+    try {
+      const res  = await fetch(CDN + file);
+      const buf  = await res.arrayBuffer();
+      const b64  = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      PDF_FONTS[key] = b64;
+    } catch (e) {
+      console.warn('PDF font preload failed for', file, e);
+    }
+  }));
+})();
+
 const TRANSLATIONS = {
   en: {
     eyebrow:'A letter through time',
@@ -1643,7 +1668,7 @@ async function generateLetter() {
     const res  = await fetch('/generate', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ message }),
+      body:    JSON.stringify({ message, lang: currentLang }),
     });
     const data = await res.json();
 
@@ -1820,7 +1845,7 @@ function addQuotePage(doc, quote) {
   const margin   = 22;
   const fontSize = quote.length < 110 ? 30 : quote.length < 180 ? 26 : 22;
   const lineH    = quote.length < 110 ? 13 : quote.length < 180 ? 12 : 10.5;
-  doc.setFont('times', 'italic');
+  doc.setFont(pdfFont(), 'italic');
   doc.setFontSize(fontSize);
   doc.setTextColor(40, 34, 65);
 
@@ -1842,7 +1867,7 @@ function addQuotePage(doc, quote) {
   doc.setGState(doc.GState({ opacity: 1 }));
 
   // ── Branding footer ────────────────────────────────────
-  doc.setFont('times', 'normal');
+  doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(145, 132, 170);
   doc.text(T('pdf_footer'), pw / 2, ph - 16, { align: 'center' });
@@ -1871,7 +1896,7 @@ function addUserMessagePage(doc, message) {
   doc.line(margin, y, pw - margin, y);
   y += 6;
 
-  doc.setFont('times', 'normal');
+  doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(150, 138, 175);
   const label = currentLang === 'en' ? 'WHAT YOU WROTE' : 'YOUR WORDS';
@@ -1887,7 +1912,7 @@ function addUserMessagePage(doc, message) {
   y += 12;
 
   // User message body
-  doc.setFont('times', 'italic');
+  doc.setFont(pdfFont(), 'italic');
   doc.setFontSize(11.5);
   doc.setTextColor(45, 40, 70);
 
@@ -1900,15 +1925,38 @@ function addUserMessagePage(doc, message) {
   });
 
   // Footer
-  doc.setFont('times', 'normal');
+  doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(155, 140, 178);
   doc.text(T('pdf_footer'), pw / 2, ph - 12, { align: 'center' });
 }
 
+// Register Lora fonts into a jsPDF doc instance (no-op if not yet loaded)
+function registerLoraFonts(doc) {
+  if (PDF_FONTS.regular) {
+    doc.addFileToVFS('Lora-Regular.ttf',    PDF_FONTS.regular);
+    doc.addFont('Lora-Regular.ttf',    'Lora', 'normal');
+  }
+  if (PDF_FONTS.italic) {
+    doc.addFileToVFS('Lora-Italic.ttf',     PDF_FONTS.italic);
+    doc.addFont('Lora-Italic.ttf',     'Lora', 'italic');
+  }
+  if (PDF_FONTS.bolditalic) {
+    doc.addFileToVFS('Lora-BoldItalic.ttf', PDF_FONTS.bolditalic);
+    doc.addFont('Lora-BoldItalic.ttf', 'Lora', 'bolditalic');
+  }
+}
+
+// Choose font family — Lora when available (full Unicode), times as fallback
+function pdfFont(style) {
+  const hasLora = !!PDF_FONTS.regular;
+  return hasLora ? 'Lora' : 'times';
+}
+
 function saveAsPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  registerLoraFonts(doc);
 
   const pw           = doc.internal.pageSize.getWidth();
   const ph           = doc.internal.pageSize.getHeight();
@@ -1933,7 +1981,7 @@ function saveAsPDF() {
   y += 6;
 
   // Title
-  doc.setFont('times', 'normal');
+  doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(145, 132, 168);
   doc.text(T('pdf_title'), pageWidth / 2, y, { align: 'center' });
@@ -1950,7 +1998,7 @@ function saveAsPDF() {
   y += 14;
 
   // Letter body
-  doc.setFont('times', 'normal');
+  doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(12);
   doc.setTextColor(30, 28, 45);
 
@@ -1963,7 +2011,7 @@ function saveAsPDF() {
       doc.setGState(doc.GState({ opacity: 0.5 }));
       doc.line(margin, y - 2, pageWidth - margin, y - 2);
       doc.setGState(doc.GState({ opacity: 1 }));
-      doc.setFont('times', 'italic');
+      doc.setFont(pdfFont(), 'italic');
       doc.setTextColor(100, 92, 128);
     }
 
@@ -1982,16 +2030,16 @@ function saveAsPDF() {
 
   // Signature
   y += 7;
-  doc.setFont('times', 'italic');
+  doc.setFont(pdfFont(), 'italic');
   doc.setFontSize(11);
   doc.setTextColor(115, 105, 138);
   doc.text(T('with_love'), margin, y);
-  doc.setFont('times', 'bolditalic');
+  doc.setFont(pdfFont(), 'bolditalic');
   doc.setTextColor(35, 30, 55);
   doc.text(T('sig_name').replace('{year}', futureDate.getFullYear()), margin, y + 7);
 
   // Footer
-  doc.setFont('times', 'normal');
+  doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(155, 140, 178);
   doc.text(T('pdf_footer'), pw / 2, ph - 12, { align: 'center' });

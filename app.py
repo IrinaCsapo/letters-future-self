@@ -39,10 +39,22 @@ def about():
     return send_from_directory('static', 'about.html')
 
 
+LANG_NAMES_MAP = {
+    'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German',
+    'pt': 'Portuguese', 'ro': 'Romanian', 'hu': 'Hungarian', 'pl': 'Polish',
+    'uk': 'Ukrainian', 'ru': 'Russian', 'it': 'Italian', 'sv': 'Swedish',
+    'nl': 'Dutch', 'da': 'Danish', 'no': 'Norwegian', 'fi': 'Finnish',
+    'cs': 'Czech', 'sk': 'Slovak', 'hr': 'Croatian', 'bg': 'Bulgarian',
+    'el': 'Greek', 'tr': 'Turkish', 'lt': 'Lithuanian', 'lv': 'Latvian',
+    'sl': 'Slovenian',
+}
+
+
 @app.route('/generate', methods=['POST'])
 def generate_letter():
     data = request.get_json()
     user_message = data.get('message', '')
+    lang = data.get('lang', 'en')
 
     if not user_message or not user_message.strip():
         return jsonify({'error': 'No message provided'}), 400
@@ -50,11 +62,14 @@ def generate_letter():
     if len(user_message) > 5000:
         return jsonify({'error': 'Message too long. Please keep it under 5000 characters.'}), 400
 
+    language = LANG_NAMES_MAP.get(lang, 'English')
+    system = SYSTEM_PROMPT + f"\n- Write the letter entirely in {language}. Every word must be in {language} only. Do not mix languages."
+
     try:
         message = client.messages.create(
             model="claude-opus-4-6",
             max_tokens=1024,
-            system=SYSTEM_PROMPT,
+            system=system,
             messages=[
                 {"role": "user", "content": user_message}
             ]

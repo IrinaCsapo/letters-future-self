@@ -27,9 +27,19 @@ const PDF_FONTS = { regular: null, italic: null, bolditalic: null };
 function arrayBufferToBase64(buf) {
   // Spread-into-String.fromCharCode overflows the call stack for large buffers.
   // Process in 8 KB chunks to stay safely within limits.
-  const bytes     = new Uint8Array(buf);
+  const bytes = new Uint8Array(buf);
+
+  // Validate magic bytes — TTF starts with 0x00010000 or "true", OTF with "OTTO".
+  // If the CDN returned an HTML error page instead of a font, reject it early.
+  if (bytes.length < 4) throw new Error('Response too small to be a font');
+  const magic = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
+  const validTTF = bytes[0] === 0x00 && bytes[1] === 0x01 && bytes[2] === 0x00 && bytes[3] === 0x00;
+  const validOTF = magic === 'OTTO';
+  const validTrue = magic === 'true';
+  if (!validTTF && !validOTF && !validTrue) throw new Error('Response is not a valid font file');
+
   const chunkSize = 8192;
-  let binary      = '';
+  let binary = '';
   for (let i = 0; i < bytes.length; i += chunkSize) {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
   }
@@ -1942,19 +1952,24 @@ function addUserMessagePage(doc, message) {
   doc.text(T('pdf_footer'), pw / 2, ph - 12, { align: 'center' });
 }
 
-// Register Lora fonts into a jsPDF doc instance (no-op if not yet loaded)
+// Register Lora fonts into a jsPDF doc instance (no-op if not yet loaded).
+// Wrapped in try/catch: if the font data is corrupt or jsPDF rejects it,
+// we reset PDF_FONTS so pdfFont() falls back to the built-in 'times' font
+// and the PDF still generates correctly.
 function registerLoraFonts(doc) {
-  if (PDF_FONTS.regular) {
+  if (!PDF_FONTS.regular) return;
+  try {
     doc.addFileToVFS('Lora-Regular.ttf',    PDF_FONTS.regular);
     doc.addFont('Lora-Regular.ttf',    'Lora', 'normal');
-  }
-  if (PDF_FONTS.italic) {
     doc.addFileToVFS('Lora-Italic.ttf',     PDF_FONTS.italic);
     doc.addFont('Lora-Italic.ttf',     'Lora', 'italic');
-  }
-  if (PDF_FONTS.bolditalic) {
     doc.addFileToVFS('Lora-BoldItalic.ttf', PDF_FONTS.bolditalic);
     doc.addFont('Lora-BoldItalic.ttf', 'Lora', 'bolditalic');
+  } catch (e) {
+    console.warn('Lora font registration failed, using built-in fonts:', e);
+    PDF_FONTS.regular = null;
+    PDF_FONTS.italic  = null;
+    PDF_FONTS.bolditalic = null;
   }
 }
 

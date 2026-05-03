@@ -20,9 +20,21 @@ const LANG_NAMES = {
 
 // ── PDF font cache — preloaded at startup ─────────────
 // jsPDF built-in fonts only cover Latin-1, which garbles Romanian,
-// Polish, Czech, Greek etc. We fetch Lora TTF from jsDelivr and embed
+// Polish, Czech, Greek, etc. We fetch Lora TTF from jsDelivr and embed
 // it via addFileToVFS so every language renders correctly.
 const PDF_FONTS = { regular: null, italic: null, bolditalic: null };
+
+function arrayBufferToBase64(buf) {
+  // Spread-into-String.fromCharCode overflows the call stack for large buffers.
+  // Process in 8 KB chunks to stay safely within limits.
+  const bytes     = new Uint8Array(buf);
+  const chunkSize = 8192;
+  let binary      = '';
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
 
 (async function preloadPDFFonts() {
   const CDN = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lora/static/';
@@ -33,10 +45,9 @@ const PDF_FONTS = { regular: null, italic: null, bolditalic: null };
   ];
   await Promise.all(files.map(async ({ key, file }) => {
     try {
-      const res  = await fetch(CDN + file);
-      const buf  = await res.arrayBuffer();
-      const b64  = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      PDF_FONTS[key] = b64;
+      const res      = await fetch(CDN + file);
+      const buf      = await res.arrayBuffer();
+      PDF_FONTS[key] = arrayBufferToBase64(buf);
     } catch (e) {
       console.warn('PDF font preload failed for', file, e);
     }
@@ -1947,10 +1958,11 @@ function registerLoraFonts(doc) {
   }
 }
 
-// Choose font family — Lora when available (full Unicode), times as fallback
-function pdfFont(style) {
-  const hasLora = !!PDF_FONTS.regular;
-  return hasLora ? 'Lora' : 'times';
+// Choose font family — Lora when ALL variants loaded (full Unicode), times as fallback.
+// Requiring all three prevents doc.setFont('Lora','bolditalic') crashing when
+// only some variants loaded successfully.
+function pdfFont() {
+  return (PDF_FONTS.regular && PDF_FONTS.italic && PDF_FONTS.bolditalic) ? 'Lora' : 'times';
 }
 
 function saveAsPDF() {

@@ -1584,17 +1584,6 @@ function setLanguage(lang) {
     btn.classList.toggle('active', btn.dataset.lang === lang);
   });
 
-  // Restart typewriter from the top in the new language
-  if (typeof twState !== 'undefined') {
-    clearTimeout(twState.timer);
-    twState.idx   = 0;
-    twState.chars = 0;
-    twState.phase = 'typing';
-    const ta = document.getElementById('user-message');
-    if (ta && ta.value.trim() === '') {
-      twState.timer = setTimeout(twStep, 400);
-    }
-  }
 }
 
 // ── Language auto-detect + init ────────────────────────
@@ -1607,96 +1596,83 @@ function setLanguage(lang) {
 
 
 // ── Typewriter animated placeholder ───────────────────
-// Cycles through the p1–p8 writing prompts (fully translated in all 25 langs).
-// Shows when the textarea is empty + unfocused; hides on focus or input.
+// Rotates through emotionally resonant first-person phrases across 7 languages.
+// Uses var (not const/let) at module scope so there is zero TDZ risk —
+// the initLang() IIFE runs before this block and must not crash.
 
-const TW_KEYS  = ['p1', 'p2', 'p4', 'p5', 'p7', 'p8'];
-const twState  = { idx: 0, chars: 0, phase: 'typing', timer: null };
+var TW_PHRASES = [
+  "I’ve been carrying something heavy lately…",
+  "Je porte quelque chose de lourd depuis un moment…",
+  "Ich trage seit einer Weile etwas Schweres mit mir…",
+  "Porto qualcosa di pesante da un po’ di tempo…",
+  "Duc ceva greu cu mine de ceva vreme…",
+  "Я несу щось важке вже деякий час…",
+  "He estado cargando algo pesado últimamente…",
+  "Something I’ve never said out loud is…",
+  "Quelque chose que je n’ai jamais dit à voix haute…",
+  "Etwas, das ich noch nie laut gesagt habe…",
+  "Una cosa che non ho mai detto ad alta voce è…",
+  "Un lucru pe care nu l-am spus niciodată cu voce tare…",
+  "Те, що я ніколи не казав вголос…",
+  "Algo que nunca he dicho en voz alta es…",
+];
 
-function twGetPrompt() {
-  return T(TW_KEYS[twState.idx % TW_KEYS.length]);
-}
+var twIdx    = 0;
+var twChars  = 0;
+var twDir    = 1;   // 1 = typing forward, -1 = deleting
+var twTimer  = null;
+var twPaused = false;
 
-function twStep() {
-  clearTimeout(twState.timer);
-
-  const phEl  = document.getElementById('typewriter-ph');
-  const txtEl = document.getElementById('typewriter-text');
-  const curEl = document.getElementById('tw-cursor');
-  const ta    = document.getElementById('user-message');
-
+function twTick() {
+  var phEl  = document.getElementById('typewriter-ph');
+  var txtEl = document.getElementById('typewriter-text');
+  var ta    = document.getElementById('user-message');
   if (!phEl || !txtEl || !ta) return;
 
-  // Keep hidden while textarea has content
-  if (ta.value.length > 0) {
-    phEl.hidden = true;
-    twState.timer = setTimeout(twStep, 300);
-    return;
-  }
-  phEl.hidden = false;
+  // Hide while the textarea is focused or has content
+  var busy = ta.value.length > 0 || twPaused;
+  phEl.style.visibility = busy ? 'hidden' : 'visible';
+  if (busy) { twTimer = setTimeout(twTick, 250); return; }
 
-  const prompt = twGetPrompt();
+  var phrase = TW_PHRASES[twIdx];
 
-  if (twState.phase === 'typing') {
-    twState.chars = Math.min(twState.chars + 1, prompt.length);
-    txtEl.textContent = prompt.slice(0, twState.chars);
-    if (twState.chars >= prompt.length) {
-      // Hold at full phrase
-      twState.phase = 'hold';
-      twState.timer = setTimeout(twStep, 2200);
+  if (twDir === 1) {
+    // Typing forward
+    twChars = Math.min(twChars + 1, phrase.length);
+    txtEl.textContent = phrase.slice(0, twChars);
+    if (twChars >= phrase.length) {
+      // Finished typing — hold, then flip to delete
+      twTimer = setTimeout(function () { twDir = -1; twTick(); }, 2000);
     } else {
-      // Vary speed slightly for a natural feel
-      const delay = 42 + Math.random() * 32;
-      twState.timer = setTimeout(twStep, delay);
+      twTimer = setTimeout(twTick, 48 + Math.random() * 28);
     }
-
-  } else if (twState.phase === 'hold') {
-    twState.phase = 'deleting';
-    twState.timer = setTimeout(twStep, 40);
-
-  } else if (twState.phase === 'deleting') {
-    if (twState.chars > 0) {
-      twState.chars--;
-      txtEl.textContent = prompt.slice(0, twState.chars);
-      twState.timer = setTimeout(twStep, 22);
+  } else {
+    // Deleting backward
+    twChars = Math.max(twChars - 1, 0);
+    txtEl.textContent = phrase.slice(0, twChars);
+    if (twChars <= 0) {
+      twIdx  = (twIdx + 1) % TW_PHRASES.length;
+      twDir  = 1;
+      twTimer = setTimeout(twTick, 380);
     } else {
-      // Move to next prompt
-      twState.idx   = (twState.idx + 1) % TW_KEYS.length;
-      twState.phase = 'typing';
-      twState.timer = setTimeout(twStep, 420);
+      twTimer = setTimeout(twTick, 24);
     }
   }
 }
 
-// Start after a short settle delay
-setTimeout(twStep, 900);
+// Start after a comfortable delay so the page has fully rendered
+twTimer = setTimeout(twTick, 1100);
 
-// Pause on focus (hide overlay so native cursor is clean)
-document.getElementById('user-message').addEventListener('focus', () => {
-  const ph = document.getElementById('typewriter-ph');
-  if (ph) ph.hidden = true;
-  clearTimeout(twState.timer);
+// Pause while the textarea is focused; resume when it loses focus empty
+document.getElementById('user-message').addEventListener('focus', function () {
+  twPaused = true;
 });
-
-// Resume on blur if still empty
-document.getElementById('user-message').addEventListener('blur', () => {
-  const ta = document.getElementById('user-message');
-  if (ta && ta.value.trim() === '') {
-    twState.chars = 0;
-    twState.phase = 'typing';
-    clearTimeout(twState.timer);
-    twState.timer = setTimeout(twStep, 600);
-  }
-});
-
-// Reset if user clears the textarea
-document.getElementById('user-message').addEventListener('input', () => {
-  const ta = document.getElementById('user-message');
-  const ph = document.getElementById('typewriter-ph');
-  if (ta && ta.value.length === 0) {
-    if (ph) ph.hidden = false;
-    twState.chars = 0;
-    twState.phase = 'typing';
+document.getElementById('user-message').addEventListener('blur', function () {
+  twPaused = false;
+  if (document.getElementById('user-message').value.trim() === '') {
+    twChars = 0; twDir = 1;
+    clearTimeout(twTimer);
+    twTimer = setTimeout(twTick, 500);
   }
 });
 

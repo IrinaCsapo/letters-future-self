@@ -486,13 +486,17 @@
       max-width: 72%;
     }
 
+    /* Divider extracted from paper-footer so it can be independently indented */
+    .paper-divider {
+      border-top: 1px solid var(--rule);
+      margin: 2rem 0 1.25rem 1.5rem;
+    }
+
     .paper-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 2rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--rule);
+      padding-left: 1.5rem;
       gap: 1rem;
     }
 
@@ -510,7 +514,7 @@
       border: none;
       cursor: pointer;
       transition: all 0.22s ease;
-      border-radius: 0;
+      border-radius: 8px;
     }
 
     .btn-primary { background: var(--ink); color: var(--paper); }
@@ -688,9 +692,15 @@
       .paper, .letter-paper { padding: 2rem 1.5rem; }
       .paper::before { left: 1.25rem; }
       .prompt-label, textarea { padding-left: 0.75rem; }
-      .paper-header { flex-direction: column; gap: 0.4rem; }
-      .paper-footer { flex-wrap: wrap; gap: 0.75rem; }
+      /* Keep date in the top-right corner — no column override */
+      .paper-header { gap: 0.5rem; align-items: baseline; }
+      .date-stamp { font-size: 0.58rem; }
+      /* Align divider and footer note with label indent on mobile */
+      .paper-divider { margin-left: 0.75rem; }
+      .paper-footer { flex-wrap: wrap; gap: 0.75rem; padding-left: 0.75rem; }
       .card-note { max-width: 100%; }
+      /* Full-width send button on mobile for easier tapping */
+      #send-btn { width: 100%; justify-content: center; }
       .letter-actions { flex-direction: column; align-items: center; }
     }
   </style>
@@ -779,6 +789,7 @@
           <textarea id="user-message" rows="3" autofocus></textarea>
           <div class="typewriter-ph" id="typewriter-ph" aria-hidden="true"><span id="typewriter-text"></span><span class="tw-cursor" id="tw-cursor"></span></div>
         </div>
+        <div class="paper-divider"></div>
         <div class="paper-footer">
           <p class="card-note" id="i18n-card-note">Your letters are private. We never store or read your words.</p>
           <button class="btn btn-primary" id="send-btn">Send &rarr;</button>
@@ -871,9 +882,9 @@
       <a href="/about#idea">What this is</a>
       <a href="/about#how-it-works">How it works</a>
       <a href="/about#privacy">Privacy</a>
-      <a href="/about#story">Our story</a>
+      <a href="/about#story">The Story</a>
     </nav>
-    <p class="footer-made">Made with love by <a href="https://www.irinacsapo.co.uk" target="_blank" rel="noopener">Irina Csapo</a></p>
+    <p class="footer-made">Made with <span style="color:#e05a6a;">♥</span> by <a href="https://irina.love/" target="_blank" rel="noopener">irina.love</a></p>
   </footer>
 
   <script src="/static/script.js"></script>

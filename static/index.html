@@ -141,7 +141,7 @@
       background: rgba(255,255,255,0.52);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-radius: 1px;
+      border-radius: 12px;
       padding: 1.75rem 2rem 1.5rem;
       text-align: left;
       box-shadow: 0 2px 20px rgba(180,130,210,0.08);
@@ -375,7 +375,7 @@
     /* ── Paper card ──────────────────────────────── */
     .paper {
       background: var(--paper);
-      border-radius: 1px;
+      border-radius: 16px;
       box-shadow:
         0 2px 8px rgba(160,120,200,0.07),
         0 8px 32px rgba(180,130,210,0.10),
@@ -424,6 +424,41 @@
       flex-shrink: 0;
     }
 
+    /* ── Typewriter placeholder ──────────────────── */
+    .typewriter-wrap {
+      position: relative;
+    }
+
+    .typewriter-ph {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.38rem;
+      line-height: 1.85;
+      color: rgba(26,25,40,0.30);
+      font-style: italic;
+      font-weight: 400;
+      padding-left: 1.5rem;
+      white-space: pre-wrap;
+      overflow: hidden;
+    }
+
+    .tw-cursor {
+      display: inline-block;
+      width: 1.5px;
+      height: 1.22em;
+      background: rgba(26,25,40,0.30);
+      vertical-align: text-bottom;
+      margin-left: 1px;
+      animation: tw-blink 0.9s step-end infinite;
+    }
+
+    @keyframes tw-blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
     textarea {
       width: 100%;
       border: none;
@@ -436,10 +471,11 @@
       outline: none;
       font-weight: 400;
       padding-left: 1.5rem;
-      min-height: 200px;
+      min-height: 68px;
+      position: relative;
     }
 
-    textarea::placeholder { color: rgba(26,25,40,0.32); font-style: italic; }
+    textarea::placeholder { color: transparent; }
 
     .card-note {
       font-size: 0.74rem;
@@ -739,7 +775,10 @@
           <label class="prompt-label" id="i18n-prompt-label">What's been weighing on you lately?</label>
           <span class="date-stamp" id="today-date"></span>
         </div>
-        <textarea id="user-message" placeholder="Start writing… there's no wrong way to do this." rows="10" autofocus></textarea>
+        <div class="typewriter-wrap">
+          <textarea id="user-message" rows="3" autofocus></textarea>
+          <div class="typewriter-ph" id="typewriter-ph" aria-hidden="true"><span id="typewriter-text"></span><span class="tw-cursor" id="tw-cursor"></span></div>
+        </div>
         <div class="paper-footer">
           <p class="card-note" id="i18n-card-note">Your letters are private. We never store or read your words.</p>
           <button class="btn btn-primary" id="send-btn">Send &rarr;</button>

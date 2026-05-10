@@ -1583,6 +1583,18 @@ function setLanguage(lang) {
   document.querySelectorAll('.lang-opt').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === lang);
   });
+
+  // Restart typewriter from the top in the new language
+  if (typeof twState !== 'undefined') {
+    clearTimeout(twState.timer);
+    twState.idx   = 0;
+    twState.chars = 0;
+    twState.phase = 'typing';
+    const ta = document.getElementById('user-message');
+    if (ta && ta.value.trim() === '') {
+      twState.timer = setTimeout(twStep, 400);
+    }
+  }
 }
 
 // ── Language auto-detect + init ────────────────────────
@@ -1592,6 +1604,101 @@ function setLanguage(lang) {
   const detected  = TRANSLATIONS[browser] ? browser : 'en';
   setLanguage(saved || detected);
 })();
+
+
+// ── Typewriter animated placeholder ───────────────────
+// Cycles through the p1–p8 writing prompts (fully translated in all 25 langs).
+// Shows when the textarea is empty + unfocused; hides on focus or input.
+
+const TW_KEYS  = ['p1', 'p2', 'p4', 'p5', 'p7', 'p8'];
+const twState  = { idx: 0, chars: 0, phase: 'typing', timer: null };
+
+function twGetPrompt() {
+  return T(TW_KEYS[twState.idx % TW_KEYS.length]);
+}
+
+function twStep() {
+  clearTimeout(twState.timer);
+
+  const phEl  = document.getElementById('typewriter-ph');
+  const txtEl = document.getElementById('typewriter-text');
+  const curEl = document.getElementById('tw-cursor');
+  const ta    = document.getElementById('user-message');
+
+  if (!phEl || !txtEl || !ta) return;
+
+  // Keep hidden while textarea has content
+  if (ta.value.length > 0) {
+    phEl.hidden = true;
+    twState.timer = setTimeout(twStep, 300);
+    return;
+  }
+  phEl.hidden = false;
+
+  const prompt = twGetPrompt();
+
+  if (twState.phase === 'typing') {
+    twState.chars = Math.min(twState.chars + 1, prompt.length);
+    txtEl.textContent = prompt.slice(0, twState.chars);
+    if (twState.chars >= prompt.length) {
+      // Hold at full phrase
+      twState.phase = 'hold';
+      twState.timer = setTimeout(twStep, 2200);
+    } else {
+      // Vary speed slightly for a natural feel
+      const delay = 42 + Math.random() * 32;
+      twState.timer = setTimeout(twStep, delay);
+    }
+
+  } else if (twState.phase === 'hold') {
+    twState.phase = 'deleting';
+    twState.timer = setTimeout(twStep, 40);
+
+  } else if (twState.phase === 'deleting') {
+    if (twState.chars > 0) {
+      twState.chars--;
+      txtEl.textContent = prompt.slice(0, twState.chars);
+      twState.timer = setTimeout(twStep, 22);
+    } else {
+      // Move to next prompt
+      twState.idx   = (twState.idx + 1) % TW_KEYS.length;
+      twState.phase = 'typing';
+      twState.timer = setTimeout(twStep, 420);
+    }
+  }
+}
+
+// Start after a short settle delay
+setTimeout(twStep, 900);
+
+// Pause on focus (hide overlay so native cursor is clean)
+document.getElementById('user-message').addEventListener('focus', () => {
+  const ph = document.getElementById('typewriter-ph');
+  if (ph) ph.hidden = true;
+  clearTimeout(twState.timer);
+});
+
+// Resume on blur if still empty
+document.getElementById('user-message').addEventListener('blur', () => {
+  const ta = document.getElementById('user-message');
+  if (ta && ta.value.trim() === '') {
+    twState.chars = 0;
+    twState.phase = 'typing';
+    clearTimeout(twState.timer);
+    twState.timer = setTimeout(twStep, 600);
+  }
+});
+
+// Reset if user clears the textarea
+document.getElementById('user-message').addEventListener('input', () => {
+  const ta = document.getElementById('user-message');
+  const ph = document.getElementById('typewriter-ph');
+  if (ta && ta.value.length === 0) {
+    if (ph) ph.hidden = false;
+    twState.chars = 0;
+    twState.phase = 'typing';
+  }
+});
 
 // ── Language picker toggle ─────────────────────────────
 function toggleLangPicker() {

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect
 from dotenv import load_dotenv
 load_dotenv()
 import anthropic
@@ -8,6 +8,15 @@ import secrets
 app = Flask(__name__, static_folder='static')
 
 client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+
+
+@app.before_request
+def force_https():
+    """Redirect HTTP → HTTPS on Railway (and other reverse-proxy hosts).
+    Railway sets X-Forwarded-Proto when terminating SSL at the edge."""
+    proto = request.headers.get('X-Forwarded-Proto', 'https')
+    if proto == 'http':
+        return redirect(request.url.replace('http://', 'https://', 1), code=301)
 
 # In-memory letter store for short share links (resets on redeploy)
 letters_store = {}

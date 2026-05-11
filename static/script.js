@@ -64,6 +64,36 @@ function arrayBufferToBase64(buf) {
   }));
 })();
 
+// ── PDF image cache — preloaded at startup ────────────
+// Photographic backgrounds for each PDF page type.
+// Using var (not const/let) to avoid Temporal Dead Zone issues.
+var PDF_IMAGES = { letterBg: null, quoteBg: null, writtenBg: null };
+
+(async function preloadPDFImages() {
+  const imgs = [
+    { key: 'letterBg',  src: '/static/img/pdf-letter-bg.jpg'  },
+    { key: 'quoteBg',   src: '/static/img/pdf-quote-bg.jpg'   },
+    { key: 'writtenBg', src: '/static/img/pdf-written-bg.jpg' },
+  ];
+  await Promise.all(imgs.map(async ({ key, src }) => {
+    try {
+      const res   = await fetch(src);
+      const buf   = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      // Validate JPEG magic bytes (FF D8)
+      if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) throw new Error('Not a valid JPEG');
+      const chunkSize = 8192;
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      PDF_IMAGES[key] = btoa(binary);
+    } catch (e) {
+      console.warn('PDF image preload failed for', src, e);
+    }
+  }));
+})();
+
 const TRANSLATIONS = {
   en: {
     eyebrow:'A letter through time',
@@ -1919,30 +1949,30 @@ function addQuotePage(doc, quote) {
   const pw = doc.internal.pageSize.getWidth();   // 210 mm
   const ph = doc.internal.pageSize.getHeight();  // 297 mm
 
-  // ── Background: pale lavender (matches --bg on the site) ──
-  doc.setFillColor(245, 241, 250);
-  doc.rect(0, 0, pw, ph, 'F');
-
-  // ── Corner colour blobs ────────────────────────────────
-  drawPDFBlob(doc,   0,   0,  82, 220, 160, 210);  // top-left:     soft rose/pink
-  drawPDFBlob(doc,  pw,   0,  74, 255, 190, 155);  // top-right:    peach / coral
-  drawPDFBlob(doc,   0,  ph,  88, 160, 120, 220);  // bottom-left:  lavender / purple
-  drawPDFBlob(doc,  pw,  ph,  78, 230, 170, 230);  // bottom-right: pink-violet
-
-  // ── Flowers ────────────────────────────────────────────
-  // bottom-left cluster
-  drawPDFFlower(doc,  20,  ph - 24,  8,  6,   10,  175, 115, 215);
-  drawPDFFlower(doc,   7,  ph - 44,  6,  4.2,  7,  235, 145, 190);
-  drawPDFFlower(doc,  34,  ph - 10,  5,  3.4,  6,  215, 168, 232);
-
-  // top-right cluster
-  drawPDFFlower(doc, pw - 20,  24,   8,  6,   10,  255, 165, 145);
-  drawPDFFlower(doc, pw -  7,  44,   6,  4.2,  7,  240, 155, 205);
-  drawPDFFlower(doc, pw - 34,  10,   5,  3.4,  6,  195, 148, 228);
-
-  // ── Spirals / twirls ──────────────────────────────────
-  drawPDFSpiral(doc,  40, ph - 44,  24, 2.5,  185, 135, 218);
-  drawPDFSpiral(doc, pw - 40, 44,   20, 2.2,  240, 155, 178);
+  // ── Background: photo or procedural fallback ──────────
+  if (PDF_IMAGES.quoteBg) {
+    doc.addImage(PDF_IMAGES.quoteBg, 'JPEG', 0, 0, pw, ph);
+    // Subtle white overlay so dark text stays readable over varied colors
+    doc.setFillColor(255, 255, 255);
+    doc.setGState(doc.GState({ opacity: 0.22 }));
+    doc.rect(0, 0, pw, ph, 'F');
+    doc.setGState(doc.GState({ opacity: 1 }));
+  } else {
+    doc.setFillColor(245, 241, 250);
+    doc.rect(0, 0, pw, ph, 'F');
+    drawPDFBlob(doc,   0,   0,  82, 220, 160, 210);
+    drawPDFBlob(doc,  pw,   0,  74, 255, 190, 155);
+    drawPDFBlob(doc,   0,  ph,  88, 160, 120, 220);
+    drawPDFBlob(doc,  pw,  ph,  78, 230, 170, 230);
+    drawPDFFlower(doc,  20,  ph - 24,  8,  6,   10,  175, 115, 215);
+    drawPDFFlower(doc,   7,  ph - 44,  6,  4.2,  7,  235, 145, 190);
+    drawPDFFlower(doc,  34,  ph - 10,  5,  3.4,  6,  215, 168, 232);
+    drawPDFFlower(doc, pw - 20,  24,   8,  6,   10,  255, 165, 145);
+    drawPDFFlower(doc, pw -  7,  44,   6,  4.2,  7,  240, 155, 205);
+    drawPDFFlower(doc, pw - 34,  10,   5,  3.4,  6,  195, 148, 228);
+    drawPDFSpiral(doc,  40, ph - 44,  24, 2.5,  185, 135, 218);
+    drawPDFSpiral(doc, pw - 40, 44,   20, 2.2,  240, 155, 178);
+  }
 
   // ── Quote text ─────────────────────────────────────────
   // Adaptive font — complete sentence always shown
@@ -1983,13 +2013,21 @@ function addUserMessagePage(doc, message) {
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
-  // Same lavender background
-  doc.setFillColor(245, 241, 250);
-  doc.rect(0, 0, pw, ph, 'F');
-  drawPDFBlob(doc,   0,   0,  65, 210, 175, 230);
-  drawPDFBlob(doc,  pw,   0,  55, 240, 185, 220);
-  drawPDFBlob(doc,   0,  ph,  60, 175, 145, 220);
-  drawPDFBlob(doc,  pw,  ph,  58, 225, 170, 235);
+  // ── Background: photo or procedural fallback ──────────
+  if (PDF_IMAGES.writtenBg) {
+    doc.addImage(PDF_IMAGES.writtenBg, 'JPEG', 0, 0, pw, ph);
+    doc.setFillColor(255, 255, 255);
+    doc.setGState(doc.GState({ opacity: 0.22 }));
+    doc.rect(0, 0, pw, ph, 'F');
+    doc.setGState(doc.GState({ opacity: 1 }));
+  } else {
+    doc.setFillColor(245, 241, 250);
+    doc.rect(0, 0, pw, ph, 'F');
+    drawPDFBlob(doc,   0,   0,  65, 210, 175, 230);
+    drawPDFBlob(doc,  pw,   0,  55, 240, 185, 220);
+    drawPDFBlob(doc,   0,  ph,  60, 175, 145, 220);
+    drawPDFBlob(doc,  pw,  ph,  58, 225, 170, 235);
+  }
 
   const margin = 28;
   let y = 28;
@@ -2023,7 +2061,20 @@ function addUserMessagePage(doc, message) {
   const paras = message.split(/\n+/).filter(p => p.trim());
   paras.forEach(para => {
     const lines = doc.splitTextToSize(para.trim(), pw - margin * 2);
-    if (y + lines.length * 6 > ph - 24) { doc.addPage(); y = 28; }
+    if (y + lines.length * 6 > ph - 24) {
+      doc.addPage();
+      if (PDF_IMAGES.writtenBg) {
+        doc.addImage(PDF_IMAGES.writtenBg, 'JPEG', 0, 0, pw, ph);
+        doc.setFillColor(255, 255, 255);
+        doc.setGState(doc.GState({ opacity: 0.22 }));
+        doc.rect(0, 0, pw, ph, 'F');
+        doc.setGState(doc.GState({ opacity: 1 }));
+      } else {
+        doc.setFillColor(245, 241, 250);
+        doc.rect(0, 0, pw, ph, 'F');
+      }
+      y = 28;
+    }
     doc.text(lines, margin, y);
     y += lines.length * 6 + 2;
   });
@@ -2074,13 +2125,17 @@ function saveAsPDF() {
   const pageWidth    = pw;
   const contentWidth = pageWidth - margin * 2;
 
-  // ── Letter page: lavender background + soft blobs ────
-  doc.setFillColor(245, 241, 250);
-  doc.rect(0, 0, pw, ph, 'F');
-  drawPDFBlob(doc,   0,   0,  70, 195, 165, 225);
-  drawPDFBlob(doc,  pw,   0,  60, 230, 175, 215);
-  drawPDFBlob(doc,   0,  ph,  65, 165, 135, 215);
-  drawPDFBlob(doc,  pw,  ph,  62, 215, 160, 230);
+  // ── Letter page: photographic background or soft blobs ────
+  if (PDF_IMAGES.letterBg) {
+    doc.addImage(PDF_IMAGES.letterBg, 'JPEG', 0, 0, pw, ph);
+  } else {
+    doc.setFillColor(245, 241, 250);
+    doc.rect(0, 0, pw, ph, 'F');
+    drawPDFBlob(doc,   0,   0,  70, 195, 165, 225);
+    drawPDFBlob(doc,  pw,   0,  60, 230, 175, 215);
+    drawPDFBlob(doc,   0,  ph,  65, 165, 135, 215);
+    drawPDFBlob(doc,  pw,  ph,  62, 215, 160, 230);
+  }
 
   let y = 22;
 
@@ -2129,8 +2184,12 @@ function saveAsPDF() {
 
     if (y + lines.length * 6 > ph - 22) {
       doc.addPage();
-      doc.setFillColor(245, 241, 250);
-      doc.rect(0, 0, pw, ph, 'F');
+      if (PDF_IMAGES.letterBg) {
+        doc.addImage(PDF_IMAGES.letterBg, 'JPEG', 0, 0, pw, ph);
+      } else {
+        doc.setFillColor(245, 241, 250);
+        doc.rect(0, 0, pw, ph, 'F');
+      }
       y = 22;
     }
 

@@ -2140,7 +2140,7 @@ function saveAsPDF() {
   let y = 22;
 
   // Header rule
-  doc.setDrawColor(185, 175, 205);
+  doc.setDrawColor(30, 28, 45);
   doc.setLineWidth(0.28);
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
@@ -2148,7 +2148,7 @@ function saveAsPDF() {
   // Title
   doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(8.5);
-  doc.setTextColor(145, 132, 168);
+  doc.setTextColor(30, 28, 45);
   doc.text(T('pdf_title'), pageWidth / 2, y, { align: 'center' });
   y += 4;
 
@@ -2157,7 +2157,7 @@ function saveAsPDF() {
 
   // Dates
   doc.setFontSize(8);
-  doc.setTextColor(155, 142, 172);
+  doc.setTextColor(30, 28, 45);
   doc.text(`${T('pdf_written')} ${formatDate(today)}`, margin, y);
   doc.text(`${T('pdf_from')} ${formatDate(futureDate)}`, pageWidth - margin, y, { align: 'right' });
   y += 14;
@@ -2210,7 +2210,7 @@ function saveAsPDF() {
   // Footer
   doc.setFont(pdfFont(), 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(155, 140, 178);
+  doc.setTextColor(30, 28, 45);
   doc.text(T('pdf_footer'), pw / 2, ph - 12, { align: 'center' });
 
   // ── User's original message ──────────────────────────

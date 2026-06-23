@@ -2271,6 +2271,18 @@ async function loadFromShared() {
 }
 
 
+// ── Landing → Write transition ────────────────────────
+
+function goToWriteScreen() {
+  const landing = document.getElementById('landing-screen');
+  landing.style.opacity = '0';
+  setTimeout(function () {
+    showScreen('write-screen');
+    landing.style.opacity = '';
+    setTimeout(function () { userMessage.focus(); }, 80);
+  }, 520);
+}
+
 // ── Reset ─────────────────────────────────────────────
 
 function reset() {

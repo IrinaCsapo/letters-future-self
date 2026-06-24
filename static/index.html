@@ -234,6 +234,28 @@
       border-color: rgba(26,25,40,0.55);
     }
 
+    /* Footer over the landing video — switch to white */
+    body.landing-active .site-footer-rule {
+      background: rgba(255,255,255,0.18);
+    }
+    body.landing-active .footer-nav a {
+      color: rgba(255,255,255,0.62);
+    }
+    body.landing-active .footer-nav a:hover {
+      color: rgba(255,255,255,0.95);
+    }
+    body.landing-active .footer-made {
+      color: rgba(255,255,255,0.52);
+    }
+    body.landing-active .footer-made a {
+      color: rgba(255,255,255,0.70);
+      border-bottom-color: rgba(255,255,255,0.32);
+    }
+    body.landing-active .footer-made a:hover {
+      color: #fff;
+      border-bottom-color: rgba(255,255,255,0.65);
+    }
+
     /* ── Grain overlay ───────────────────────────── */
     .grain {
       position: fixed;
@@ -712,10 +734,9 @@
       padding: 0 !important;
       overflow: hidden;
       display: none;
+      transition: opacity 0.55s ease;
     }
-    #landing-screen.active {
-      display: block !important;
-    }
+    #landing-screen.active { display: block !important; }
 
     #hero-video {
       position: absolute;
@@ -731,13 +752,47 @@
       inset: 0;
       z-index: 1;
       background: linear-gradient(
-        160deg,
-        rgba(22, 12, 42, 0.38) 0%,
-        rgba(22, 12, 42, 0.22) 45%,
-        rgba(22, 12, 42, 0.42) 100%
+        180deg,
+        rgba(12, 8, 30, 0.30) 0%,
+        rgba(12, 8, 30, 0.12) 40%,
+        rgba(12, 8, 30, 0.18) 70%,
+        rgba(12, 8, 30, 0.45) 100%
       );
     }
 
+    /* ── Top nav ── */
+    .hero-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 1.6rem 2rem;
+    }
+
+    .hero-nav a {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.62);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .hero-nav a:hover { color: rgba(255, 255, 255, 0.95); }
+
+    .hero-nav-dot {
+      font-size: 0.38rem;
+      color: rgba(255, 255, 255, 0.38);
+      line-height: 1;
+    }
+
+    /* ── Main centred content ── */
     .hero-content {
       position: absolute;
       inset: 0;
@@ -747,99 +802,108 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 2rem 2rem 8rem;
+      padding: 5rem 2rem 6rem;
     }
 
     .hero-eyebrow {
       display: block;
       font-family: 'Inter', sans-serif;
-      font-size: 0.62rem;
+      font-size: 0.58rem;
       font-weight: 400;
-      letter-spacing: 0.42em;
+      letter-spacing: 0.38em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.72);
-      margin-bottom: 1.75rem;
+      color: rgba(255, 255, 255, 0.62);
+      margin-bottom: 1.5rem;
     }
 
     .hero-title {
       font-family: 'Fraunces', serif;
       font-optical-sizing: auto;
-      font-weight: 200;
-      font-style: normal;
-      font-size: clamp(3.8rem, 10vw, 8rem);
-      line-height: 0.93;
-      letter-spacing: -0.025em;
-      color: #fff;
-      margin-bottom: 1.75rem;
-      text-shadow: 0 2px 40px rgba(30, 10, 60, 0.22);
-    }
-
-    .hero-title em {
+      font-weight: 300;
       font-style: italic;
-      font-weight: 200;
+      font-size: clamp(4rem, 10.5vw, 8.5rem);
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 1.4rem;
+      text-shadow: 0 2px 48px rgba(10, 5, 30, 0.28);
     }
 
     .hero-sub {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Fraunces', serif;
+      font-optical-sizing: auto;
       font-weight: 300;
-      font-size: 0.95rem;
-      color: rgba(255, 255, 255, 0.78);
-      line-height: 1.75;
-      letter-spacing: 0.03em;
-      margin-bottom: 3rem;
+      font-style: italic;
+      font-size: clamp(1rem, 2.2vw, 1.3rem);
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      margin-bottom: 2.6rem;
     }
 
+    /* Wide pill CTA matching the reference */
     .hero-cta {
       display: inline-flex;
       align-items: center;
-      gap: 0.55rem;
+      justify-content: center;
       font-family: 'Inter', sans-serif;
-      font-size: 0.68rem;
+      font-size: 0.62rem;
       font-weight: 400;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      padding: 0.9rem 2.4rem;
-      background: rgba(255, 255, 255, 0.14);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.52);
-      border-radius: 8px;
+      padding: 1rem 3.4rem;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 999px;
       color: #fff;
       cursor: pointer;
       transition: background 0.25s ease, border-color 0.25s ease;
+      white-space: nowrap;
     }
-
     .hero-cta:hover {
-      background: rgba(255, 255, 255, 0.26);
-      border-color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.24);
+      border-color: rgba(255, 255, 255, 0.85);
     }
 
-    .hero-bottom-nav {
+    /* ── Bottom credits bar ── */
+    .hero-credits {
       position: absolute;
-      bottom: 2.25rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 1.2rem 2rem;
     }
 
-    .hero-bottom-nav a {
+    .hero-credits span,
+    .hero-credits a {
       font-family: 'Inter', sans-serif;
-      font-size: 0.62rem;
-      letter-spacing: 0.1em;
+      font-size: 0.55rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.50);
+      color: rgba(255, 255, 255, 0.45);
       text-decoration: none;
       transition: color 0.2s;
     }
-    .hero-bottom-nav a:hover { color: rgba(255, 255, 255, 0.85); }
-
-    /* Landing fade-out transition */
-    #landing-screen { transition: opacity 0.55s ease; }
+    .hero-credits a:hover { color: rgba(255, 255, 255, 0.82); }
+    .hero-credits-dot {
+      font-size: 0.35rem;
+      color: rgba(255, 255, 255, 0.28);
+    }
 
     @media (max-width: 520px) {
-      .hero-title { font-size: 3.4rem; }
-      .hero-sub { font-size: 0.88rem; }
-      .hero-content { padding: 2rem 1.5rem 7rem; }
+      .hero-title { font-size: 3.5rem; }
+      .hero-sub   { font-size: 1rem; }
+      .hero-content { padding: 5rem 1.5rem 5rem; }
+      .hero-nav { gap: 0.4rem; padding: 1.2rem 1rem; }
+      .hero-credits { flex-wrap: wrap; gap: 0.3rem; padding: 0.9rem 1rem; }
     }
   </style>
 </head>
@@ -883,15 +947,28 @@
       <source src="/static/img/hero-bg.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <span class="hero-eyebrow">A letter through time</span>
-      <h1 class="hero-title">Letters from<br><em>Your Future Self</em></h1>
-      <p class="hero-sub">Write what's weighing on you.<br>Your future self will write back.</p>
-      <button class="hero-cta" onclick="goToWriteScreen()">Begin your letter &nbsp;→</button>
-    </div>
-    <nav class="hero-bottom-nav">
-      <a href="/about">About this project</a>
+
+    <!-- Top nav -->
+    <nav class="hero-nav" aria-label="Site navigation">
+      <a href="/">Home</a>
+      <span class="hero-nav-dot" aria-hidden="true">●</span>
+      <a href="/about">About</a>
+      <span class="hero-nav-dot" aria-hidden="true">●</span>
+      <a href="/about#story">The Story</a>
     </nav>
+
+    <!-- Centre content -->
+    <div class="hero-content">
+      <span class="hero-eyebrow">From Irina's Cabinet of Delights</span>
+      <h1 class="hero-title">Letters from<br>Your Future Self</h1>
+      <p class="hero-sub">Write what's weighing on you. I'll write back.</p>
+      <button class="hero-cta" onclick="goToWriteScreen()">Begin your letter</button>
+    </div>
+
+    <!-- Bottom credits (project name only — "Made with love" lives in the site footer below) -->
+    <div class="hero-credits" aria-hidden="true">
+      <span>Letters from Your Future Self</span>
+    </div>
   </div>
 
   <!-- ── Write screen ────────────────────────────── -->

@@ -2251,6 +2251,7 @@ async function loadFromShared() {
         const data = await res.json();
         if (Array.isArray(data.paragraphs) && data.paragraphs.length > 0) {
           currentParagraphs = data.paragraphs;
+          document.body.classList.remove('landing-active');
           renderLetter(data.paragraphs, true);
           return;
         }
@@ -2278,6 +2279,7 @@ function goToWriteScreen() {
   landing.style.opacity = '0';
   setTimeout(function () {
     showScreen('write-screen');
+    document.body.classList.remove('landing-active');
     landing.style.opacity = '';
     setTimeout(function () { userMessage.focus(); }, 80);
   }, 520);
@@ -2320,5 +2322,9 @@ function togglePrompts() {
 
 
 // ── Init ──────────────────────────────────────────────
+
+// Mark body so footer adopts white-on-video styles while landing is visible.
+// Cleared in goToWriteScreen() and when a shared letter loads directly.
+document.body.classList.add('landing-active');
 
 loadFromShared();

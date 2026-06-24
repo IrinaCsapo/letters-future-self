@@ -79,7 +79,8 @@
     a.eyebrow:hover { opacity: 1; }
 
     h1 {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Fraunces', serif;
+      font-optical-sizing: auto;
       font-weight: 300;
       font-size: clamp(3.2rem, 7.5vw, 6rem);
       line-height: 0.98;
@@ -234,27 +235,9 @@
       border-color: rgba(26,25,40,0.55);
     }
 
-    /* Footer over the landing video — switch to white */
-    body.landing-active .site-footer-rule {
-      background: rgba(255,255,255,0.18);
-    }
-    body.landing-active .footer-nav a {
-      color: rgba(255,255,255,0.62);
-    }
-    body.landing-active .footer-nav a:hover {
-      color: rgba(255,255,255,0.95);
-    }
-    body.landing-active .footer-made {
-      color: rgba(255,255,255,0.52);
-    }
-    body.landing-active .footer-made a {
-      color: rgba(255,255,255,0.70);
-      border-bottom-color: rgba(255,255,255,0.32);
-    }
-    body.landing-active .footer-made a:hover {
-      color: #fff;
-      border-bottom-color: rgba(255,255,255,0.65);
-    }
+    /* Hide site footer completely while landing screen is visible —
+       the hero-nav and hero-credits handle navigation + credits there */
+    body.landing-active .site-footer { display: none; }
 
     /* ── Grain overlay ───────────────────────────── */
     .grain {
@@ -965,9 +948,11 @@
       <button class="hero-cta" onclick="goToWriteScreen()">Begin your letter</button>
     </div>
 
-    <!-- Bottom credits (project name only — "Made with love" lives in the site footer below) -->
+    <!-- Bottom credits -->
     <div class="hero-credits" aria-hidden="true">
       <span>Letters from Your Future Self</span>
+      <span class="hero-credits-dot">●</span>
+      <span>Made with <span style="color:#ffb3bb;">♥</span> by <a href="https://irina.love/" target="_blank" rel="noopener">irina.love</a></span>
     </div>
   </div>
 
